@@ -1,0 +1,263 @@
+* {
+  box-sizing: border-box;
+  color: white;
+  font-family: "Roboto";
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin: 0;
+}
+
+html,
+body {
+  background-color: rgb(24, 26, 27);
+  min-height: calc(100vh - 16px);
+}
+
+#servers {
+  width: 550px;
+  padding: 20px;
+}
+
+#servers > div {
+  width: 100%;
+  height: 100px;
+  background-color: rgb(21, 23, 24);
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  display: flex;
+  cursor: pointer;
+}
+
+#servers > div > img {
+  height: 100%;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  border-radius: 5px;
+  margin-right: 10px;
+}
+
+#servers .server-data > p {
+  margin-top: -5px;
+  color: rgb(190, 190, 190);
+}
+
+#servers .server-status {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+#servers .server-status > div {
+  width: 10px;
+  height: 10px;
+  margin-left: auto;
+  background-color: lime;
+  border-radius: 50%;
+}
+
+#servers .server-status > svg {
+  margin-top: auto;
+  width: 30px;
+  height: auto;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+#servers .server-status > svg:hover {
+  transform: rotate(90deg);
+}
+
+/*----------------------------*/
+/*---------- server ----------*/
+/*----------------------------*/
+
+nav {
+  display: flex;
+  padding: 10px;
+  align-items: center;
+  background-color: rgb(21, 23, 24);
+  border-radius: 5px;
+}
+
+nav > svg {
+  width: 40px;
+  height: auto;
+  cursor: pointer;
+}
+
+nav > h1 {
+  font-size: 2.2rem;
+  margin-left: -10px;
+  cursor: pointer;
+}
+
+nav > div {
+  display: flex;
+  gap: 20px;
+  margin-right: 10px;
+  margin-left: auto;
+}
+
+nav > div > p {
+  cursor: pointer;
+}
+
+main {
+  padding: 20px;
+  min-height: calc(100vh - 16px - 62px);
+  display: grid;
+  grid-template-columns: 500px 1fr 1fr 1fr;
+  grid-template-rows: 50px 450px 200px;
+  grid-template-areas:
+    "overview-onn overview-info overview-console overview-console"
+    "overview-players overview-info overview-console overview-console"
+    "overview-players overview-cpu overview-ram overview-storage";
+}
+
+#overview-onn {
+  padding: 10px;
+  grid-area: overview-onn;
+}
+
+#overview-onn button {
+  width: 100px;
+  background-color: rgb(21, 23, 24);
+  height: 35px;
+  margin-right: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#overview-restart-btn {
+  border: 2px rgb(50, 131, 153) solid;
+  color: rgb(50, 131, 153);
+}
+
+#overview-stop-btn {
+  border: 2px rgb(183, 76, 80) solid;
+  color: rgb(183, 76, 80);
+}
+
+#overview-start-btn {
+  border: 2px rgb(92, 211, 36) solid;
+  color: rgb(92, 211, 36);
+}
+
+#overview-players {
+  grid-area: overview-players;
+  margin: 20px 20px 10px 20px;
+  padding: 10px;
+  background-color: rgb(21, 23, 24);
+  border-radius: 10px;
+}
+
+#players-div > div {
+  display: flex;
+  align-items: center;
+  padding: 5px;
+  background-color: rgb(15, 16, 17);
+  border-radius: 5px;
+  margin-top: 15px;
+}
+
+#players-div > div > img {
+  border-radius: 5px;
+  margin-right: 10px;
+}
+
+#players-div > div > div > p:nth-child(1) {
+  color: rgb(179, 179, 179);
+}
+
+#players-div > div > svg {
+  margin-left: auto;
+  height: 35px;
+  width: auto;
+  cursor: pointer;
+}
+
+#overview-info {
+  grid-area: overview-info;
+  margin: 10px;
+  padding: 10px;
+  background-color: rgb(21, 23, 24);
+  border-radius: 5px;
+}
+
+#overview-info > div {
+  margin-top: 10px;
+  padding: 5px;
+  border-radius: 5px;
+  background-color: rgb(15, 16, 17);
+}
+
+#overview-info > div > p:nth-child(1) {
+  color: rgb(179, 179, 179);
+}
+
+#overview-console {
+  grid-area: overview-console;
+  background-color: black;
+  padding: 20px;
+  border-radius: 10px;
+  overflow-y: auto;
+}
+
+#server-console > span {
+  font-family: monospace;
+}
+
+.span-color-INFO {
+  color: white;
+}
+
+.span-color-WARN {
+  color: rgb(247, 247, 152);
+}
+
+.span-color-ERROR {
+  color: rgb(241, 109, 109);
+}
+
+#overview-cpu {
+  grid-area: overview-cpu;
+}
+
+#overview-ram {
+  grid-area: overview-ram;
+}
+
+#overview-storage {
+  grid-area: overview-storage;
+}
+
+.pc-usage {
+  margin: 10px;
+  background-color: rgb(21, 23, 24);
+  border-radius: 5px;
+  padding: 10px;
+  text-align: center;
+}
+
+.pc-usage > div {
+  margin: auto;
+  width: fit-content;
+  margin-top: 25px;
+}
+
+.pc-usage svg {
+  width: 55px;
+  height: auto;
+}
+
+.pc-usage > p {
+  color: rgb(179, 179, 179);
+}

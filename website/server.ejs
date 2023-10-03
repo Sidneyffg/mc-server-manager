@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Server</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/website/server.js" defer></script>
+    <link rel="stylesheet" href="/website/styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body data-serverStatus=" <%= serverStatus %>">
+    <nav>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        height="24"
+        viewBox="0 -960 960 960"
+        width="24"
+        fill="white"
+        onclick="window.location.href='/servers'"
+      >
+        <path d="M400-80 0-480l400-400 71 71-329 329 329 329-71 71Z" />
+      </svg>
+      <h1>Sick mc server</h1>
+      <div>
+        <p>settings</p>
+        <p>players</p>
+        <p>console</p>
+        <p>plugins</p>
+        <p>backups</p>
+      </div>
+    </nav>
+    <main>
+      <div id="overview-onn">
+        <div class="active-server" style="display: <%= serverStatus == "offline" || serverStatus == "stopping" ? "flex" : "none" %>;">
+          <button id="overview-restart-btn">Restart</button>
+          <button id="overview-stop-btn">Stop</button>
+        </div>
+        <div class="inactive-server" style="display: <%= serverStatus == "offline" || serverStatus == "stopping" ? "none" : "flex" %>;">
+          <button id="overview-start-btn">Start</button>
+        </div>
+      </div>
+      <div id="overview-players">
+        <h2>Players</h2>
+        <div id="players-div">
+          <% for(let i = 0;i<players.length;i++){ %>
+            <div>
+              <img
+                src="https://mc-heads.net/avatar/<%= players[i].uuid %>/40"
+              />
+              <div>
+                <p>USERNAME</p>
+                <p><%= players[i].name %></p>
+              </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24"
+                viewBox="0 -960 960 960"
+                width="24"
+              >
+                <path
+                  fill="white"
+                  d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z"
+                />
+              </svg>
+            </div>
+            <%}%>
+        </div>
+      </div>
+      <div id="overview-info">
+        <h2>Info</h2>
+        <div>
+          <p>Server type</p>
+          <p>Paper</p>
+        </div>
+        <div>
+          <p>Server version</p>
+          <p>1.20.1</p>
+        </div>
+        <div>
+          <p>Server build</p>
+          <p>196 (latest)</p>
+        </div>
+      </div>
+      <div id="overview-console">
+        <p id="server-console">
+          <% if(serverStatus != "offline"){ %>
+          <% const serverLogArr = serverLog.split("\n") %>
+            <% let currentType = "INFO"%>
+             <% for( let i = 0; i < serverLogArr.length; i++ ) { %>
+              <% const type = /\[[0-9]{2}\:[0-9]{2}\:[0-9]{2} ([A-Z]{4,5})|\]:/m.exec(serverLogArr[i]); %>
+              <% if (type) currentType = type[1]; %>
+                <span class="span-color-<%= currentType %>"><%= serverLogArr[i] %><br></span>
+              <% } %>
+              <% }else{ %>
+              <span class="span-color-INFO">Server offline...</span>
+              <% } %>
+        </p>
+      </div>
+      <div id="overview-cpu" class="pc-usage">
+        <div>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="24"
+            viewBox="0 -960 960 960"
+            width="24"
+          >
+            <path
+              fill="white"
+              d="M360-360v-240h240v240H360Zm80-80h80v-80h-80v80Zm-80 320v-80h-80q-33 0-56.5-23.5T200-280v-80h-80v-80h80v-80h-80v-80h80v-80q0-33 23.5-56.5T280-760h80v-80h80v80h80v-80h80v80h80q33 0 56.5 23.5T760-680v80h80v80h-80v80h80v80h-80v80q0 33-23.5 56.5T680-200h-80v80h-80v-80h-80v80h-80Zm320-160v-400H280v400h400ZM480-480Z"
+            />
+          </svg>
+        </div>
+        <p>CPU-usage</p>
+        <h3>58.60%</h3>
+      </div>
+      <div id="overview-ram" class="pc-usage">
+        <div>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="24"
+            viewBox="0 -960 960 960"
+            width="24"
+          >
+            <path
+              fill="white"
+              d="M441-82Q287-97 184-211T81-480q0-155 103-269t257-129v120q-104 14-172 93t-68 185q0 106 68 185t172 93v120Zm80 0v-120q94-12 159-78t79-160h120q-14 143-114.5 243.5T521-82Zm238-438q-14-94-79-160t-159-78v-120q143 14 243.5 114.5T879-520H759Z"
+            />
+          </svg>
+        </div>
+        <p>RAM-usage</p>
+        <h3>2.46GB</h3>
+      </div>
+      <div id="overview-storage" class="pc-usage">
+        <div>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="24"
+            viewBox="0 -960 960 960"
+            width="24"
+          >
+            <path
+              fill="white"
+              d="M120-160v-160h720v160H120Zm80-40h80v-80h-80v80Zm-80-440v-160h720v160H120Zm80-40h80v-80h-80v80Zm-80 280v-160h720v160H120Zm80-40h80v-80h-80v80Z"
+            />
+          </svg>
+        </div>
+        <p>Storage-usage</p>
+        <h3>6.54GB</h3>
+      </div>
+    </main>
+  </body>
+</html>
