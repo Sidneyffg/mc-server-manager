@@ -14,6 +14,8 @@
     "express": "^4.18.2",
     "fs": "^0.0.1-security",
     "http": "^0.0.1-security",
+    "loadavg-windows": "^1.1.1",
+    "node-os-utils": "^1.3.7",
     "socket.io": "^4.7.2"
   },
   "type": "module"

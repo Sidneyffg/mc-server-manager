@@ -1,8 +1,7 @@
 const socket = io();
 
 const currentServer = window.location.pathname.split("/")[2];
-setServerStatus(document.body.dataset.serverStatus);
-
+setServerStatus(document.body.dataset.serverstatus);
 const serverConsole = document.getElementById("server-console");
 const parent = serverConsole.parentElement;
 parent.scrollTop = parent.scrollHeight;
@@ -54,8 +53,53 @@ socket.on("playerUpdate" + currentServer, (players) => {
   playersDiv.innerHTML = playersHtml;
 });
 
+const usageCpu = document.getElementById("usage-cpu"),
+  usageMem = document.getElementById("usage-mem"),
+  usageStorage = document.getElementById("usage-storage");
+
+socket.on("usageUpdate", (usage) => {
+  usageCpu.innerHTML = usage.cpuUsage + "%";
+  usageMem.innerHTML = Math.round(usage.memUsage.usedMemMb / 10) / 100 + "GB";
+});
+
+socket.on("statusUpdate" + currentServer, (newStatus) => {
+  setServerStatus(newStatus);
+});
+
 function setServerStatus(status) {
-  console.log(status);
+  switch (status) {
+    case "starting":
+      serverConsole.innerHTML = "";
+      editServerBtns(false, true);
+      break;
+    case "online":
+      editServerBtns(true, false);
+      break;
+    case "stopping":
+      editServerBtns(true, true);
+      break;
+    case "offline":
+      editServerBtns(false, false);
+      break;
+  }
 }
 
+function editServerBtns(showActive, disabled) {
+  const activeServerBtns = document.getElementById("active-server-btns"),
+    inActiveServerBtns = document.getElementById("inactive-server-btns");
 
+  activeServerBtns.style.display = showActive ? "flex" : "none";
+  inActiveServerBtns.style.display = showActive ? "none" : "flex";
+
+  console.log((showActive ? activeServerBtns : inActiveServerBtns).children);
+
+  Array.from(
+    (showActive ? activeServerBtns : inActiveServerBtns).children
+  ).forEach((e) => {
+    e.disabled = disabled;
+  });
+}
+
+function changeServerStatus(action) {
+  socket.emit(action + "Server", currentServer);
+}

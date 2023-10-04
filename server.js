@@ -8,6 +8,7 @@ const io = new Server(server);
 import ServerHandler from "./handlers/serverHandler.js";
 import VersionHandler from "./handlers/versionHandler.js";
 import PlayerHandler from "./handlers/playerHandler.js";
+import log from "./handlers/consoleHandler.js";
 
 app.set("view engine", "ejs");
 const websitePath = process.cwd() + "/website";
@@ -24,7 +25,10 @@ app.get("/", (req, res) => {
 });
 
 app.get("/servers", (req, res) => {
-  res.render(websitePath + "/index.ejs");
+  res.render(websitePath + "/index.ejs", {
+    versions: versionHandler.versions,
+    servers: serverHandler.serverData.servers,
+  });
 });
 
 app.get("/servers/*", (req, res) => {
@@ -47,31 +51,45 @@ app.get("/servers/*", (req, res) => {
   });
 });
 
-io.on("connection", (socket) => {
-  console.log("connection");
-  serverHandler.pipe(socket, "_");
-  playerHandler.pipe(socket, "_");
+app.get("/newserver", (req, res) => {
+  const data = req.query;
+  data.build = versionHandler.versions.paper.find(
+    (e) => e.version == data.version
+  ).latest_build;
+
+  playerHandler.onlinePlayers.push([]);
+  const newServerNum = serverHandler.servers.length;
+  serverHandler.newServer(data);
+  res.redirect("/servers/" + newServerNum);
 });
 
-setTimeout(() => {
-  serverHandler.startServer(0);
-}, 5000);
+io.on("connection", (socket) => {
+  serverHandler.pipe(socket, "_");
+  playerHandler.pipe(socket, "_");
 
-setTimeout(() => {
-  //serverHandler.stopServer(0);
-}, 60000);
+  socket.on("startServer", (serverNum) => {
+    if (serverHandler.servers[serverNum].status != "offline") return;
+    serverHandler.startServer(serverNum).catch(() => {
+      socket.emit("startError", "data");
+    });
+  });
 
-//genNewServer();
-async function genNewServer() {
-  await serverHandler.newServer(
-    "paper",
-    "1.20.1",
-    versionHandler.versions.paper.find((e) => e.version == "1.20.1")
-      .latest_build
-  );
-  console.log("finished");
-}
+  socket.on("stopServer", (serverNum) => {
+    if (serverHandler.servers[serverNum].status != "online") return;
+    serverHandler.stopServer(serverNum);
+  });
+
+  socket.on("restartServer", async (serverNum) => {
+    if (serverHandler.servers[serverNum].status != "online") return;
+    await serverHandler.stopServer(serverNum);
+    serverHandler.startServer(serverNum).catch(() => {
+      socket.emit("startError", "data");
+    });
+  });
+});
 
 server.listen(3000, () => {
-  console.log("Listening on *:3000");
+  log("webServer", "INFO", {
+    text: "Listening on *:3000",
+  });
 });

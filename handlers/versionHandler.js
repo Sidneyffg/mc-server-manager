@@ -1,4 +1,5 @@
 import https from "https";
+import log from "./consoleHandler.js";
 
 export default class VersionHandler {
   versions = {
@@ -9,13 +10,9 @@ export default class VersionHandler {
       await this.#getJsonFromLink("https://api.papermc.io/v2/projects/paper/")
     ).versions;
     await this.#getServerBuildsSync(paperVersions);
-    console.log(
-      this.versions.paper.sort(
-        (a, b) =>
-          parseFloat(b.version.slice(2)) - parseFloat(a.version.slice(2))
-      )
+    this.versions.paper.sort(
+      (a, b) => parseFloat(b.version.slice(2)) - parseFloat(a.version.slice(2))
     );
-    //console.log(this.versions);
   }
 
   #getServerBuildsSync(versions) {
@@ -34,12 +31,13 @@ export default class VersionHandler {
           });
         }
         count++;
-        console.log({
-          version: version,
-          latest_build: latest_build,
-        });
 
-        if (count == versions.length) resolve();
+        if (count == versions.length) {
+          log("versionHandler", "INFO", {
+            text: "Loaded paper versions",
+          });
+          resolve();
+        }
       });
     });
   }

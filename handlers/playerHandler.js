@@ -4,7 +4,6 @@ export default class PlayerHandler {
 
     for (let i = 0; i < serverHandler.servers.length; i++)
       this.onlinePlayers.push([]);
-    console.log(this.onlinePlayers);
     serverHandler.on("playerConnected", (player, serverNum) => {
       const currentOnlinePlayers = this.onlinePlayers[serverNum];
       currentOnlinePlayers.push(player);

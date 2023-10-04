@@ -1,14 +1,26 @@
 {
   "servers": [
     {
+      "name": "sicket server 2.0",
       "type": "paper",
       "version": "1.20.1",
-      "creationDate": 1696151987770
+      "gamemode": "hardcore",
+      "difficulty": "peaceful",
+      "seed": "123",
+      "port": "25565",
+      "build": 196,
+      "creationDate": 1696429376430
     },
     {
+      "name": "444",
       "type": "paper",
-      "version": "1.20.1",
-      "creationDate": 1696151987770
+      "version": "1.19.4",
+      "gamemode": "creative",
+      "difficulty": "normal",
+      "seed": "123123123123",
+      "port": "25565",
+      "build": 550,
+      "creationDate": 1696429512653
     }
   ]
 }

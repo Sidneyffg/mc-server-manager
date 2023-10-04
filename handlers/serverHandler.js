@@ -1,6 +1,10 @@
 import fs from "fs";
 import https from "https";
 import { spawn } from "child_process";
+import log from "./consoleHandler.js";
+
+import UsageHandler from "./usageHandler.js";
+const usageHandler = new UsageHandler();
 
 export default class ServerHandler {
   constructor() {
@@ -9,7 +13,9 @@ export default class ServerHandler {
     } catch (err) {
       throw err;
     }
-    console.log(FgGreen, this.serverData);
+    log("serverHandler", "INFO", {
+      text: "Loaded server data.",
+    });
 
     this.servers = new Array(this.serverData.servers.length);
     this.servers.fill({
@@ -17,41 +23,69 @@ export default class ServerHandler {
       server: null,
       log: "",
     });
+    setInterval(async () => {
+      this.emit("_usageUpdate", {
+        cpuUsage: await usageHandler.getCpu(),
+        memUsage: await usageHandler.getMemory(),
+      });
+    }, 1000);
   }
 
-  newServer(type, version, build) {
-    return new Promise((resolve) => {
-      const serverNum = this.serverData.servers.length;
+  newServer(data) {
+    this.serverData.servers.push({
+      ...data,
+      creationDate: Date.now(),
+    });
+    this.#saveServerData();
 
-      this.servers.push({
-        status: "offline",
-        server: null,
-        log: "",
-      });
+    this.servers.push({
+      status: "offline",
+      server: null,
+      log: "",
+    });
+    return new Promise((resolve) => {
+      const serverNum = this.serverData.servers.length - 1;
+
       this.setServerStatus(serverNum, "downloading");
 
       const path = `${process.cwd()}/data/servers/${serverNum}`;
       fs.mkdirSync(path);
+
+      let propertiesData = `motd=${data.name}\nquery.port=${data.port}\ndifficulty=${data.difficulty}\nserver-port=${data.port}`;
+      if (data.seed != "") {
+        propertiesData += "\nlevel-seed=" + data.seed;
+      }
+      if (data.gamemode == "hardcore") {
+        propertiesData += "\ngamemode=survival\nhardcore=true";
+      } else {
+        propertiesData += "\ngamemode=" + data.gamemode;
+      }
+      //fs.writeFileSync(path + "/server.properties", propertiesData);
       fs.writeFileSync(path + "/eula.txt", "eula=true");
       fs.writeFileSync(
         path + "/start.bat",
         `cd "./data/servers/${serverNum}"\njava -Xmx1024M -Xms1024M -jar server.jar nogui`
       );
-      const url = `https://api.papermc.io/v2/projects/paper/versions/${version}/builds/${build}/downloads/paper-${version}-${build}.jar`;
+      const url = `https://api.papermc.io/v2/projects/paper/versions/${data.version}/builds/${data.build}/downloads/paper-${data.version}-${data.build}.jar`;
       https.get(url, (res) => {
         const filePath = fs.createWriteStream(path + "/server.jar");
         res.pipe(filePath);
         filePath.on("finish", async () => {
           filePath.close();
-          console.log(FgGreen, "Downloaded server jar");
-          await this.startServer(serverNum);
-          await this.stopServer(serverNum);
-          this.serverData.servers.push({
-            type: type,
-            version: version,
-            creationDate: Date.now(),
+          log("serverHandler", "INFO", {
+            text: "Downloaded server jar",
+            serverNum,
           });
-          this.#saveServerData();
+          try {
+            await this.startServer(serverNum);
+          } catch {
+            log("serverHandler", "ERROR", {
+              text: "Failed to create server...",
+              serverNum,
+            });
+            return;
+          }
+          await this.stopServer(serverNum);
           resolve();
         });
       });
@@ -62,7 +96,6 @@ export default class ServerHandler {
     return new Promise((resolve, reject) => {
       const currentServer = this.servers[serverNum];
       if (currentServer.server) {
-        console.log(FgGreen, "Server already running...");
         return;
       }
 
@@ -78,11 +111,11 @@ export default class ServerHandler {
 
         this.emit("_consoleUpdate" + serverNum, data);
 
-        console.log(Reset, data);
-        if (data.includes("Closing Server")) {
-          this.setServerStatus(serverNum, "offline");
-          currentServer.server = null;
-        }
+        log("serverHandler", "INFO", {
+          text: data,
+          serverNum,
+          type: "spawnLog",
+        });
         if (data.includes("Timings Reset")) {
           this.setServerStatus(serverNum, "online");
           resolve();
@@ -103,6 +136,19 @@ export default class ServerHandler {
           this.emit("playerDisconnected", { name }, serverNum);
         }
       });
+      currentServer.server.on("close", (code) => {
+        if (this.servers[serverNum].status != "online") reject();
+        this.setServerStatus(serverNum, "offline");
+        currentServer.server = null;
+      });
+      currentServer.server.stderr.on("data", (data) => {
+        data = data.toString();
+        log("serverHandler", "ERROR", {
+          text: data,
+          serverNum,
+        });
+        this.emit("_consoleUpdate" + serverNum, data);
+      });
     });
   }
   async stopServer(serverNum) {
@@ -119,8 +165,11 @@ export default class ServerHandler {
     if (currentServer.status == "downloading" && newStatus != "offline") return;
 
     currentServer.status = newStatus;
-    this.emit("_statusUpdate" + serverNum,newStatus)
-    console.log(FgGreen, `Server ${serverNum} is ` + newStatus);
+    this.emit("_statusUpdate" + serverNum, newStatus);
+    log("serverHandler", "INFO", {
+      text: "Server is " + newStatus,
+      serverNum,
+    });
   }
 
   async #saveServerData() {
@@ -150,7 +199,8 @@ export default class ServerHandler {
       }
     });
     this.pipers.forEach((e) => {
-      if (event.startsWith(e.prefix)) e.socket?.emit(event.replace(e.prefix, ""), data);
+      if (event.startsWith(e.prefix))
+        e.socket?.emit(event.replace(e.prefix, ""), data);
     });
   }
 
@@ -161,31 +211,3 @@ export default class ServerHandler {
     });
   }
 }
-
-const Reset = "\x1b[0m";
-const Bright = "\x1b[1m";
-const Dim = "\x1b[2m";
-const Underscore = "\x1b[4m";
-const Blink = "\x1b[5m";
-const Reverse = "\x1b[7m";
-const Hidden = "\x1b[8m";
-
-const FgBlack = "\x1b[30m";
-const FgRed = "\x1b[31m";
-const FgGreen = "\x1b[32m";
-const FgYellow = "\x1b[33m";
-const FgBlue = "\x1b[34m";
-const FgMagenta = "\x1b[35m";
-const FgCyan = "\x1b[36m";
-const FgWhite = "\x1b[37m";
-const FgGray = "\x1b[90m";
-
-const BgBlack = "\x1b[40m";
-const BgRed = "\x1b[41m";
-const BgGreen = "\x1b[42m";
-const BgYellow = "\x1b[43m";
-const BgBlue = "\x1b[44m";
-const BgMagenta = "\x1b[45m";
-const BgCyan = "\x1b[46m";
-const BgWhite = "\x1b[47m";
-const BgGray = "\x1b[100m";

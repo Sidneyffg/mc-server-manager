@@ -12,7 +12,7 @@
       rel="stylesheet"
     />
   </head>
-  <body data-serverStatus=" <%= serverStatus %>">
+  <body data-serverstatus="<%= serverStatus %>">
     <nav>
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -35,12 +35,12 @@
     </nav>
     <main>
       <div id="overview-onn">
-        <div class="active-server" style="display: <%= serverStatus == "offline" || serverStatus == "stopping" ? "flex" : "none" %>;">
-          <button id="overview-restart-btn">Restart</button>
-          <button id="overview-stop-btn">Stop</button>
+        <div id="active-server-btns" style="display: <%= serverStatus == "offline" || serverStatus == "stopping" ? "flex" : "none" %>;">
+          <button id="overview-stop-btn" onclick="changeServerStatus('stop')">Stop</button>
+          <button id="overview-restart-btn" onclick="changeServerStatus('restart')">Restart</button>
         </div>
-        <div class="inactive-server" style="display: <%= serverStatus == "offline" || serverStatus == "stopping" ? "none" : "flex" %>;">
-          <button id="overview-start-btn">Start</button>
+        <div id="inactive-server-btns" style="display: <%= serverStatus == "offline" || serverStatus == "stopping" ? "none" : "flex" %>;">
+          <button id="overview-start-btn" onclick="changeServerStatus('start')">Start</button>
         </div>
       </div>
       <div id="overview-players">
@@ -115,7 +115,7 @@
           </svg>
         </div>
         <p>CPU-usage</p>
-        <h3>58.60%</h3>
+        <h3 id="usage-cpu">58.60%</h3>
       </div>
       <div id="overview-ram" class="pc-usage">
         <div>
@@ -132,7 +132,7 @@
           </svg>
         </div>
         <p>RAM-usage</p>
-        <h3>2.46GB</h3>
+        <h3 id="usage-mem">2.46GB</h3>
       </div>
       <div id="overview-storage" class="pc-usage">
         <div>
@@ -149,7 +149,7 @@
           </svg>
         </div>
         <p>Storage-usage</p>
-        <h3>6.54GB</h3>
+        <h3 id="usage-storage">6.54GB</h3>
       </div>
     </main>
   </body>

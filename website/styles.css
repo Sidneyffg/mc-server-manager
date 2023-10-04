@@ -4,6 +4,10 @@
   font-family: "Roboto";
 }
 
+button {
+  cursor: pointer;
+}
+
 h1,
 h2,
 h3,
@@ -25,7 +29,25 @@ body {
   padding: 20px;
 }
 
-#servers > div {
+.servers-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.servers-header > button {
+  margin-left: auto;
+  width: 100px;
+  background-color: rgb(21, 23, 24);
+  height: 35px;
+  margin-right: 10px;
+  border-radius: 5px;
+  border: 2px rgb(50, 131, 153) solid;
+  color: rgb(50, 131, 153);
+}
+
+#servers > div:not(.servers-header) {
   width: 100%;
   height: 100px;
   background-color: rgb(21, 23, 24);
@@ -73,6 +95,63 @@ body {
 
 #servers .server-status > svg:hover {
   transform: rotate(90deg);
+}
+
+#darkener {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 50%;
+  background-color: black;
+}
+
+#new-server-menu {
+  padding: 20px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 500px;
+  background-color: rgb(24, 26, 27);
+  border-radius: 5px;
+}
+
+#new-server-menu h1 {
+  margin-bottom: 5px;
+}
+
+#new-server-menu p {
+  color: rgb(179, 179, 179);
+}
+
+#new-server-menu input,
+#new-server-menu select,
+#new-server-menu button {
+  height: 34px;
+  outline: none;
+  border: 1px black solid;
+  background-color: rgb(39, 42, 44);
+  border-radius: 5px;
+  width: 210px;
+  margin-bottom: 10px;
+  padding: 6px;
+}
+
+#new-server-menu > form > input:not(.small-imput) {
+  width: 100%;
+  padding-left: 8px;
+}
+
+#new-server-menu > form > div {
+  display: flex;
+  gap: 40px;
+}
+
+#new-server-menu button {
+  float: right;
+  background-color: rgb(50, 131, 153);
 }
 
 /*----------------------------*/
@@ -133,7 +212,11 @@ main {
   height: 35px;
   margin-right: 10px;
   border-radius: 5px;
-  cursor: pointer;
+}
+
+#overview-onn button:disabled {
+  cursor: not-allowed;
+  opacity: 65%;
 }
 
 #overview-restart-btn {

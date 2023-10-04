@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard</title>
-    <script src="/website/script.js" defer></script>
+    <script src="/website/index.js" defer></script>
     <link rel="stylesheet" href="/website/styles.css" />
     <link
       href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
@@ -13,13 +13,18 @@
   </head>
   <body>
     <div id="servers">
-      <div onclick="window.location.href = '/servers/0'">
+      <div class="servers-header">
+        <h1>Servers</h1>
+        <button onclick="openNewServer()">New server</button>
+      </div>
+      <% for(let i = 0;i<servers.length;i++){ %>
+      <div onclick="window.location.href = '/servers/<%= i %>'">
         <img
           src="https://img.freepik.com/free-photo/painting-mountain-lake-with-mountain-background_188544-9126.jpg?q=10&h=200"
         />
         <div class="server-data">
-          <h2>Sicke mc server</h2>
-          <p>paper 1.20.1</p>
+          <h2><%= servers[i].name %></h2>
+          <p><%= servers[i].type %> <%= servers[i].version %></p>
         </div>
         <div class="server-status">
           <div></div>
@@ -36,6 +41,55 @@
           </svg>
         </div>
       </div>
+      <% } %>
+    </div>
+    <div id="darkener" onclick="closeNewServer()" style="display: none;"></div>
+    <div id="new-server-menu" style="display: none;">
+      <h1>New server</h1>
+      <form action="/newserver">
+        <p>Name</p>
+        <input required type="text" name="name" />
+        <div>
+          <div>
+            <p>Type</p>
+            <select name="type">
+              <option value="paper">Paper</option>
+            </select>
+          </div>
+          <div>
+            <p>Version</p>
+            <select name="version">
+              <% for(let i = 0;i<versions.paper.length;i++){ %>
+              <option value="<%= versions.paper[i].version %>"><%= versions.paper[i].version %></option>
+              <% } %>
+            </select>
+          </div>
+        </div>
+        <div>
+          <div>
+            <p>Gamemode</p>
+            <select name="gamemode">
+              <option value="survival">Survival</option>
+              <option value="creative">Creative</option>
+              <option value="hardcore">Hardcore</option>
+            </select>
+          </div>
+          <div>
+            <p>Difficulty</p>
+            <select name="difficulty">
+              <option value="hard">Hard</option>
+              <option value="normal">Normal</option>
+              <option value="easy">Easy</option>
+              <option value="peaceful">Peaceful</option>
+            </select>
+          </div>
+        </div>
+        <p>Seed (optional)</p>
+        <input type="text" name="seed"/>
+        <p>Port</p>
+        <input type="number" name="port" min="1" max="65535" pattern="/[0-9]" placeholder="25565" class="small-imput" required/>
+        <button type="submit">Create</button>
+      </form>
     </div>
   </body>
 </html>
