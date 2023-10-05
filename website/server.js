@@ -64,12 +64,14 @@ socket.on("usageUpdate", (usage) => {
 
 socket.on("statusUpdate" + currentServer, (newStatus) => {
   setServerStatus(newStatus);
+  if (newStatus == "starting") {
+    serverConsole.innerHTML = "";
+  }
 });
 
 function setServerStatus(status) {
   switch (status) {
     case "starting":
-      serverConsole.innerHTML = "";
       editServerBtns(false, true);
       break;
     case "online":

@@ -1,26 +1,31 @@
 import osu from "node-os-utils";
+import { emit } from "./listener";
 
-export default class UsageHandler {
-  constructor() {
-    this.#fillLastCpuUsage();
-  }
-  async getMemory() {
-    const usage = await osu.mem.used();
-    return usage;
-  }
+const lastCpuUsage = new Array(3);
+fillLastCpuUsage();
 
-  #lastCpuUsage = new Array(3);
-  async getCpu() {
-    const usage = await osu.cpu.usage();
-    this.#lastCpuUsage.push(usage);
-    this.#lastCpuUsage.shift();
-    return (
-      this.#lastCpuUsage.reduce((a, b) => a + b, 0) / this.#lastCpuUsage.length
-    ).toFixed(2);
-  }
+setInterval(async () => {
+  emit("_usageUpdate", {
+    cpuUsage: await getCpu(),
+    memUsage: await getMemory(),
+  });
+}, 1000);
 
-  async #fillLastCpuUsage() {
-    const memUsage = await osu.cpu.usage();
-    this.#lastCpuUsage.fill(memUsage);
-  }
+export async function getMemory() {
+  const usage = await osu.mem.used();
+  return usage;
+}
+
+export async function getCpu() {
+  const usage = await osu.cpu.usage();
+  lastCpuUsage.push(usage);
+  lastCpuUsage.shift();
+  return (
+    lastCpuUsage.reduce((a, b) => a + b, 0) / lastCpuUsage.length
+  ).toFixed(2);
+}
+
+async function fillLastCpuUsage() {
+  const memUsage = await osu.cpu.usage();
+  lastCpuUsage.fill(memUsage);
 }

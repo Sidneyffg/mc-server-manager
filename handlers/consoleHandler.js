@@ -1,50 +1,61 @@
-const Reset = "\x1b[0m";
-const Bright = "\x1b[1m";
-const Dim = "\x1b[2m";
-const Underscore = "\x1b[4m";
-const Blink = "\x1b[5m";
-const Reverse = "\x1b[7m";
-const Hidden = "\x1b[8m";
-
-const FgBlack = "\x1b[30m";
-const FgRed = "\x1b[31m";
-const FgGreen = "\x1b[32m";
-const FgYellow = "\x1b[33m";
-const FgBlue = "\x1b[34m";
-const FgMagenta = "\x1b[35m";
-const FgCyan = "\x1b[36m";
-const FgWhite = "\x1b[37m";
-const FgGray = "\x1b[90m";
-
-const BgBlack = "\x1b[40m";
-const BgRed = "\x1b[41m";
-const BgGreen = "\x1b[42m";
-const BgYellow = "\x1b[43m";
-const BgBlue = "\x1b[44m";
-const BgMagenta = "\x1b[45m";
-const BgCyan = "\x1b[46m";
-const BgWhite = "\x1b[47m";
-const BgGray = "\x1b[100m";
-
-const types = [
-  { type: "INFO", color: Reset },
-  { type: "WARN", color: FgYellow },
-  { type: "ERROR", color: FgRed },
-];
-
-const typesToSkip = ["spawnLog"];
-
-export default function log(handler, type, data) {
-  if (typesToSkip.includes(data.type)) return;
-  let logData = `[${handler} ${type}]`;
-  switch (handler) {
-    case "serverHandler":
-      if (!data.serverNum) break;
-      logData += ` [server ${data.serverNum}]`;
+export default class Logger {
+  constructor(prefixes) {
+    this.prefixes = prefixes;
   }
-  console.log(typeToColor(type), logData, data.text);
+
+  info(text, type = "") {
+    if (this.#typesToSkip.includes(type)) return;
+    this.#log(this.#Reset, "INFO", text);
+  }
+  warn(text, type = "") {
+    if (this.#typesToSkip.includes(type)) return;
+    this.#log(this.#FgYellow, "WARN", text);
+  }
+  error(text, type = "") {
+    if (this.#typesToSkip.includes(type)) return;
+    this.#log(this.#FgRed, "ERROR", text);
+  }
+
+  #log(color, type, text) {
+    let logPrefix = "";
+    this.prefixes.forEach((prefix, idx) => {
+      if (idx == 0) {
+        logPrefix += `[${prefix} ${type}] `;
+      } else {
+        logPrefix += `[${prefix}] `;
+      }
+    });
+    console.log(color, logPrefix + text);
+  }
+
+  #typesToSkip = ["spawnLog"];
+  #Reset = "\x1b[0m";
+  #FgRed = "\x1b[31m";
+  #FgYellow = "\x1b[33m";
 }
 
-function typeToColor(type) {
-  return types.find((e) => e.type == type).color;
-}
+/*Reset = "\x1b[0m";
+Bright = "\x1b[1m";
+Dim = "\x1b[2m";
+Underscore = "\x1b[4m";
+Blink = "\x1b[5m";
+Reverse = "\x1b[7m";
+Hidden = "\x1b[8m";
+FgBlack = "\x1b[30m";
+FgRed = "\x1b[31m";
+FgGreen = "\x1b[32m";
+FgYellow = "\x1b[33m";
+FgBlue = "\x1b[34m";
+FgMagenta = "\x1b[35m";
+FgCyan = "\x1b[36m";
+FgWhite = "\x1b[37m";
+FgGray = "\x1b[90m";
+BgBlack = "\x1b[40m";
+BgRed = "\x1b[41m";
+BgGreen = "\x1b[42m";
+BgYellow = "\x1b[43m";
+BgBlue = "\x1b[44m";
+BgMagenta = "\x1b[45m";
+BgCyan = "\x1b[46m";
+BgWhite = "\x1b[47m";
+BgGray = "\x1b[100m";*/

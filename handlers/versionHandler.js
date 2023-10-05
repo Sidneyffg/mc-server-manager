@@ -1,7 +1,11 @@
 import https from "https";
-import log from "./consoleHandler.js";
+import Logger from "./consoleHandler.js";
 
 export default class VersionHandler {
+  constructor() {
+    this.#logger = new Logger(["versionHandler"]);
+  }
+  #logger;
   versions = {
     paper: [],
   };
@@ -33,9 +37,7 @@ export default class VersionHandler {
         count++;
 
         if (count == versions.length) {
-          log("versionHandler", "INFO", {
-            text: "Loaded paper versions",
-          });
+          this.#logger.info("Loaded paper versions");
           resolve();
         }
       });
@@ -44,7 +46,7 @@ export default class VersionHandler {
 
   async #getJsonFromLink(link) {
     return new Promise(async (resolve, reject) => {
-      await https.get(link, (res) => {
+      https.get(link, (res) => {
         let body = "";
 
         res.on("data", (chunk) => {

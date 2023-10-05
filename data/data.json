@@ -21,6 +21,17 @@
       "port": "25565",
       "build": 550,
       "creationDate": 1696429512653
+    },
+    {
+      "name": "dddd",
+      "type": "paper",
+      "version": "1.20.2",
+      "gamemode": "survival",
+      "difficulty": "hard",
+      "seed": "",
+      "port": "25565",
+      "build": 217,
+      "creationDate": 1696515970133
     }
   ]
 }

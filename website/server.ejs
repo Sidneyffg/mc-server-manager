@@ -12,7 +12,7 @@
       rel="stylesheet"
     />
   </head>
-  <body data-serverstatus="<%= serverStatus %>">
+  <body data-serverstatus="<%= status %>">
     <nav>
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -35,11 +35,11 @@
     </nav>
     <main>
       <div id="overview-onn">
-        <div id="active-server-btns" style="display: <%= serverStatus == "offline" || serverStatus == "stopping" ? "flex" : "none" %>;">
+        <div id="active-server-btns" style="display: <%= status == "offline" || status == "stopping" ? "flex" : "none" %>;">
           <button id="overview-stop-btn" onclick="changeServerStatus('stop')">Stop</button>
           <button id="overview-restart-btn" onclick="changeServerStatus('restart')">Restart</button>
         </div>
-        <div id="inactive-server-btns" style="display: <%= serverStatus == "offline" || serverStatus == "stopping" ? "none" : "flex" %>;">
+        <div id="inactive-server-btns" style="display: <%= status == "offline" || status == "stopping" ? "none" : "flex" %>;">
           <button id="overview-start-btn" onclick="changeServerStatus('start')">Start</button>
         </div>
       </div>
@@ -87,8 +87,8 @@
       </div>
       <div id="overview-console">
         <p id="server-console">
-          <% if(serverStatus != "offline"){ %>
-          <% const serverLogArr = serverLog.split("\n") %>
+          <% if(status != "offline"){ %>
+          <% const serverLogArr = consoleLog.split("\n") %>
             <% let currentType = "INFO"%>
              <% for( let i = 0; i < serverLogArr.length; i++ ) { %>
               <% const type = /\[[0-9]{2}\:[0-9]{2}\:[0-9]{2} ([A-Z]{4,5})|\]:/m.exec(serverLogArr[i]); %>
