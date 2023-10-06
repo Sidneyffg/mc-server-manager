@@ -62,6 +62,10 @@ socket.on("usageUpdate", (usage) => {
   usageMem.innerHTML = Math.round(usage.memUsage.usedMemMb / 10) / 100 + "GB";
 });
 
+socket.on("serverDirSizeUpdate" + currentServer, (dirSize) => {
+  usageStorage.innerHTML = dirSize;
+});
+
 socket.on("statusUpdate" + currentServer, (newStatus) => {
   setServerStatus(newStatus);
   if (newStatus == "starting") {

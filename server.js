@@ -11,6 +11,7 @@ import * as versionHandler from "./handlers/versionHandler.js";
 import * as listener from "./handlers/listener.js";
 import Logger from "./handlers/consoleHandler.js";
 const logger = new Logger(["webserver"]);
+import * as usageHandler from "./handlers/usageHandler.js";
 
 app.set("view engine", "ejs");
 const websitePath = process.cwd() + "/website";

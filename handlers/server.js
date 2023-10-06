@@ -3,6 +3,7 @@ import * as listener from "./listener.js";
 import Logger from "./consoleHandler.js";
 import PlayerHandler from "./playerHandler.js";
 import EventHandler from "./eventHandler.js";
+import { updateServerDirSize } from "./usageHandler.js";
 
 export default class Server {
   constructor(serverNum) {
@@ -17,6 +18,7 @@ export default class Server {
   status = "offline";
   consoleLog = "";
   server = null;
+  dirSizeIntervalId;
 
   start() {
     return new Promise((resolve, reject) => {
@@ -39,12 +41,18 @@ export default class Server {
         if (this.status != "online") reject();
         this.setServerStatus("offline");
         this.server = null;
+        clearInterval(this.dirSizeIntervalId);
       });
       this.server.stderr.on("data", (data) => {
         data = data.toString();
         this.eventHandler.handleErr(data);
         this.consoleLog += data;
       });
+
+      this.dirSizeIntervalId = setInterval(async () => {
+        await updateServerDirSize(this.serverNum);
+        this.#logger.info("Updated server dir size");
+      }, 15000);
     });
   }
   async stop() {
