@@ -43,6 +43,10 @@ export function getData(serverNum) {
   };
 }
 
+export function getOnlinePlayers(serverNum) {
+  return servers[serverNum].playerHandler.onlinePlayers;
+}
+
 export function newServer(data) {
   serverData.servers.push({
     ...data,

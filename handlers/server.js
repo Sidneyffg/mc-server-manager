@@ -1,13 +1,18 @@
 import { spawn } from "child_process";
 import * as listener from "./listener.js";
 import Logger from "./consoleHandler.js";
+import PlayerHandler from "./playerHandler.js";
+import EventHandler from "./eventHandler.js";
 
 export default class Server {
   constructor(serverNum) {
     this.serverNum = serverNum;
     console.log("server: " + serverNum);
     this.#logger = new Logger(["serverHandler", `server ${serverNum}`]);
+    this.playerHandler = new PlayerHandler(this);
+    this.eventHandler = new EventHandler(this);
   }
+
   #logger;
   status = "offline";
   consoleLog = "";
@@ -27,30 +32,8 @@ export default class Server {
 
       this.server.stdout.on("data", (data) => {
         data = data.toString();
+        this.eventHandler.handle(data, resolve);
         this.consoleLog += data;
-
-        listener.emit("_consoleUpdate" + this.serverNum, data);
-
-        this.#logger.info(data, "spawnLog");
-        if (data.includes("Timings Reset")) {
-          this.setServerStatus("online");
-          resolve();
-        }
-        if (data.includes("UUID of player ")) {
-          const dataArr = data.split(" ");
-          listener.emit(
-            "playerConnected",
-            {
-              name: dataArr[5],
-              uuid: dataArr[7],
-            },
-            this.serverNum
-          );
-        }
-        if (data.includes(" lost connection: ")) {
-          const name = data.split(" ")[2];
-          listener.emit("playerDisconnected", { name }, this.serverNum);
-        }
       });
       this.server.on("close", (code) => {
         if (this.status != "online") reject();
@@ -59,8 +42,8 @@ export default class Server {
       });
       this.server.stderr.on("data", (data) => {
         data = data.toString();
-        this.#logger.error(data);
-        listener.emit("_consoleUpdate" + this.serverNum, data);
+        this.eventHandler.handleErr(data);
+        this.consoleLog += data;
       });
     });
   }
@@ -78,5 +61,18 @@ export default class Server {
     this.status = newStatus;
     listener.emit("_statusUpdate" + this.serverNum, newStatus);
     this.#logger.info("Server status is " + newStatus);
+  }
+
+  #listeners = [];
+  on(event, callback) {
+    this.#listeners.push({ event, callback });
+  }
+
+  emit(event, data, serverNum) {
+    this.#listeners.forEach((e) => {
+      if (e.event == event.replace()) {
+        e.callback(data, serverNum);
+      }
+    });
   }
 }

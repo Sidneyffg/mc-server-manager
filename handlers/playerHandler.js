@@ -1,50 +1,28 @@
-export default class PlayerHandler {
-  constructor(serverHandler) {
-    this.serverHandler = serverHandler;
+import * as listener from "./listener.js";
+import Logger from "./consoleHandler.js";
 
-    for (let i = 0; i < serverHandler.servers.length; i++)
-      this.onlinePlayers.push([]);
-    serverHandler.on("playerConnected", (player, serverNum) => {
-      const currentOnlinePlayers = this.onlinePlayers[serverNum];
-      currentOnlinePlayers.push(player);
-      this.emit("_playerUpdate" + serverNum, currentOnlinePlayers);
+export default class PlayerHandler {
+  constructor(server) {
+    this.#logger = new Logger([
+      "serverHandler",
+      "server " + server.serverNum,
+      "playerhandler",
+    ]);
+
+    server.on("playerConnected", (player) => {
+      this.onlinePlayers.push(player);
+      listener.emit("_playerUpdate" + server.serverNum, this.onlinePlayers);
+      this.#logger.info(`${player.name} connected to server.`);
     });
-    serverHandler.on("playerDisconnected", (player, serverNum) => {
-      const currentOnlinePlayers = this.onlinePlayers[serverNum];
-      const offlinePlayer = currentOnlinePlayers.find(
+    server.on("playerDisconnected", (player) => {
+      const offlinePlayer = this.onlinePlayers.find(
         (e) => e.name == player.name
       );
-      currentOnlinePlayers.splice(
-        currentOnlinePlayers.indexOf(offlinePlayer),
-        1
-      );
-      this.emit("_playerUpdate" + serverNum, currentOnlinePlayers);
+      this.onlinePlayers.splice(this.onlinePlayers.indexOf(offlinePlayer), 1);
+      listener.emit("_playerUpdate" + server.serverNum, this.onlinePlayers);
+      this.#logger.info(`${player.name} disconnected from server.`);
     });
   }
   onlinePlayers = [];
-
-  listeners = [];
-  pipers = [];
-  on(event, callback) {
-    this.listeners.push({ event, callback });
-  }
-
-  emit(event, data) {
-    this.listeners.forEach((e) => {
-      if (e.event == event) {
-        e.callback(data);
-      }
-    });
-    this.pipers.forEach((e) => {
-      if (event.startsWith(e.prefix))
-        e.socket?.emit(event.replace(e.prefix, ""), data);
-    });
-  }
-
-  pipe(socket, prefix = "") {
-    this.pipers.push({
-      socket,
-      prefix,
-    });
-  }
+  #logger;
 }

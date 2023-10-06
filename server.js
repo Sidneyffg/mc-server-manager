@@ -7,7 +7,7 @@ const io = new Server(server);
 
 import * as serverHandler from "./handlers/serverHandler.js";
 serverHandler.init();
-import VersionHandler from "./handlers/versionHandler.js";
+import * as versionHandler from "./handlers/versionHandler.js";
 import * as listener from "./handlers/listener.js";
 import Logger from "./handlers/consoleHandler.js";
 const logger = new Logger(["webserver"]);
@@ -17,7 +17,6 @@ const websitePath = process.cwd() + "/website";
 
 app.use("/website", express.static(websitePath));
 
-const versionHandler = new VersionHandler();
 await versionHandler.getServerVersions();
 
 app.get("/", (req, res) => {
@@ -26,7 +25,7 @@ app.get("/", (req, res) => {
 
 app.get("/servers", (req, res) => {
   res.render(websitePath + "/index.ejs", {
-    versions: versionHandler.versions,
+    versions: versionHandler.allVersions,
     servers: serverHandler.serverData.servers,
   });
 });
@@ -44,14 +43,14 @@ app.get("/servers/*", (req, res) => {
   }
   res.render(websitePath + "/server.ejs", {
     ...serverHandler.getData(serverNum),
-    players: [], //playerHandler.onlinePlayers[serverNum],
+    players: serverHandler.getOnlinePlayers(serverNum),
     serverNum,
   });
 });
 
 app.get("/newserver", (req, res) => {
   const data = req.query;
-  data.build = versionHandler.versions.paper.find(
+  data.build = versionHandler.allVersions.paper.find(
     (e) => e.version == data.version
   ).latest_build;
 
@@ -62,7 +61,6 @@ app.get("/newserver", (req, res) => {
 
 io.on("connection", (socket) => {
   listener.pipe(socket, "_");
-  //playerHandler.pipe(socket, "_");
 
   socket.on("startServer", (serverNum) => {
     if (serverHandler.getData(serverNum).status != "offline") return;
