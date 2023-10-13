@@ -6,16 +6,20 @@ import Server from "./server.js";
 const logger = new Logger(["serverHandler"]);
 const servers = [];
 export let serverData;
-export function init() {
-  logger.info("Initializing..");
+export let ip;
+export async function init() {
+  logger.info("Initializing...");
   try {
-    serverData = JSON.parse(fs.readFileSync("./data/data.json"));
+    serverData = JSON.parse(fs.readFileSync("./data/serverData.json"));
   } catch (err) {
     throw err;
   }
 
-  for (let i = 0; i < serverData.servers.length; i++)
-    servers.push(new Server(i));
+  ip = await getIp();
+  logger.info("Server ip: " + ip);
+
+  for (let i = 0; i < serverData.length; i++)
+    servers.push(new Server(i, serverData[i]));
 
   logger.info("Initialized successfully");
 }
@@ -33,6 +37,7 @@ export function start(serverNum) {
 }
 export async function stop(serverNum) {
   await servers[serverNum].stop();
+  saveServerData();
 }
 
 export function getData(serverNum) {
@@ -48,13 +53,13 @@ export function getOnlinePlayers(serverNum) {
 }
 
 export function newServer(data) {
-  serverData.servers.push({
+  serverData.push({
     ...data,
     creationDate: Date.now(),
   });
   saveServerData();
 
-  const serverNum = serverData.servers.length - 1;
+  const serverNum = serverData.length - 1;
   servers.push(new Server(serverNum));
 
   return new Promise((resolve) => {
@@ -101,10 +106,26 @@ export function newServer(data) {
 
 async function saveServerData() {
   fs.writeFileSync(
-    "./data/data.json",
+    "./data/serverData.json",
     JSON.stringify(serverData, null, 2),
     (err) => {
       if (err) throw err;
     }
   );
+}
+
+function getIp() {
+  return new Promise((resolve) => {
+    https.get("https://ipv4.icanhazip.com/", (res) => {
+      let body = "";
+
+      res.on("data", (chunk) => {
+        body += chunk;
+      });
+
+      res.on("end", () => {
+        resolve(body.trim());
+      });
+    });
+  });
 }

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Players</title>
+    <link rel="stylesheet" href="/website/styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <nav>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        height="24"
+        viewBox="0 -960 960 960"
+        width="24"
+        fill="white"
+        onclick="window.location.href='/servers'"
+      >
+        <path d="M400-80 0-480l400-400 71 71-329 329 329 329-71 71Z" />
+      </svg>
+      <div id="nav-title">
+        <h1>Sick mc server</h1>
+        <p><%= serverIp %>:25565</p>
+      </div>
+      <div id="nav-pages">
+        <p>settings</p>
+        <p>players</p>
+        <p>console</p>
+        <p>plugins</p>
+        <p>backups</p>
+      </div>
+    </nav>
+    <main id="server-players-page">
+      <div class="players-container">
+        <h2>Online players</h2>
+        <div">
+          <% for(let i = 0;i<players.length;i++){ %>
+            <div>
+              <img
+                src="https://mc-heads.net/avatar/<%= players[i].uuid %>/40"
+              />
+              <div>
+                <p>USERNAME</p>
+                <p><%= players[i].name %></p>
+              </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24"
+                viewBox="0 -960 960 960"
+                width="24"
+              >
+                <path
+                  fill="white"
+                  d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z"
+                />
+              </svg>
+            </div>
+            <%}%>
+        </div>
+        <div class="players-container">
+          <h2>Whitelisted players</h2>
+          <div">
+            <% for(let i = 0;i<players.length;i++){ %>
+              <div>
+                <img
+                  src="https://mc-heads.net/avatar/<%= players[i].uuid %>/40"
+                />
+                <div>
+                  <p>USERNAME</p>
+                  <p><%= players[i].name %></p>
+                </div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  height="24"
+                  viewBox="0 -960 960 960"
+                  width="24"
+                >
+                  <path
+                    fill="white"
+                    d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z"
+                  />
+                </svg>
+              </div>
+              <%}%>
+          </div>
+          <div class="players-container">
+            <h2>Opped players</h2>
+            <div">
+              <% for(let i = 0;i<players.length;i++){ %>
+                <div>
+                  <img
+                    src="https://mc-heads.net/avatar/<%= players[i].uuid %>/40"
+                  />
+                  <div>
+                    <p>USERNAME</p>
+                    <p><%= players[i].name %></p>
+                  </div>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="24"
+                    viewBox="0 -960 960 960"
+                    width="24"
+                  >
+                    <path
+                      fill="white"
+                      d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z"
+                    />
+                  </svg>
+                </div>
+                <%}%>
+            </div>
+            <div class="players-container">
+              <h2>All players</h2>
+              <div">
+                <% for(let i = 0;i<players.length;i++){ %>
+                <div>
+                <img
+                    src="https://mc-heads.net/avatar/<%= players[i].uuid %>/40"
+                  />
+                  <div>
+                    <p>USERNAME</p>
+                    <p><%= players[i].name %></p>
+                  </div>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="24"
+                    viewBox="0 -960 960 960"
+                    width="24"
+                  >
+                    <path
+                      fill="white"
+                      d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z"
+                    />
+                  </svg>
+                </div>
+                <%}%>
+              </div>
+    </main>
+  </body>
+</html>

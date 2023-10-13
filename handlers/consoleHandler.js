@@ -25,7 +25,7 @@ export default class Logger {
         logPrefix += `[${prefix}] `;
       }
     });
-    console.log(color, logPrefix + text);
+    console.log(color + logPrefix + text);
   }
 
   #typesToSkip = ["spawnLog"];

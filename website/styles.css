@@ -172,13 +172,22 @@ nav > svg {
   cursor: pointer;
 }
 
-nav > h1 {
-  font-size: 2.2rem;
+#nav-title {
   margin-left: -10px;
+}
+
+#nav-title > h1 {
+  font-size: 2rem;
   cursor: pointer;
 }
 
-nav > div {
+#nav-title > p {
+  margin-top: -5px;
+  color: rgb(179, 179, 179);
+  font-size: 0.9rem;
+}
+
+#nav-pages {
   display: flex;
   gap: 20px;
   margin-right: 10px;
@@ -189,7 +198,7 @@ nav > div > p {
   cursor: pointer;
 }
 
-main {
+main#server-overview-page {
   padding: 20px;
   min-height: calc(100vh - 16px - 62px);
   display: grid;
@@ -236,13 +245,16 @@ main {
 
 #overview-players {
   grid-area: overview-players;
-  margin: 20px 20px 10px 20px;
+}
+
+.players-container {
+  margin: 10px;
   padding: 10px;
   background-color: rgb(21, 23, 24);
   border-radius: 10px;
 }
 
-#players-div > div {
+.players-container > div > div {
   display: flex;
   align-items: center;
   padding: 5px;
@@ -251,16 +263,16 @@ main {
   margin-top: 15px;
 }
 
-#players-div > div > img {
+.players-container > div > div > img {
   border-radius: 5px;
   margin-right: 10px;
 }
 
-#players-div > div > div > p:nth-child(1) {
+.players-container > div > div > div > p:nth-child(1) {
   color: rgb(179, 179, 179);
 }
 
-#players-div > div > svg {
+.players-container > div > div > svg {
   margin-left: auto;
   height: 35px;
   width: auto;
@@ -343,4 +355,19 @@ main {
 
 .pc-usage > p {
   color: rgb(179, 179, 179);
+}
+
+/*-----------------------------*/
+/*---------- players ----------*/
+/*-----------------------------*/
+
+main#server-players-page {
+  padding: 20px;
+  display: grid;
+  min-height: calc(100vh - 16px - 62px);
+  grid-template-columns: 1fr 2fr;
+  grid-template-rows: 1fr 1fr;
+  grid-template-areas:
+    "online-players whitelisted-players"
+    "opped-players all-players";
 }

@@ -6,7 +6,7 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 import * as serverHandler from "./handlers/serverHandler.js";
-serverHandler.init();
+await serverHandler.init();
 import * as versionHandler from "./handlers/versionHandler.js";
 import * as listener from "./handlers/listener.js";
 import Logger from "./handlers/consoleHandler.js";
@@ -27,7 +27,32 @@ app.get("/", (req, res) => {
 app.get("/servers", (req, res) => {
   res.render(websitePath + "/index.ejs", {
     versions: versionHandler.allVersions,
-    servers: serverHandler.serverData.servers,
+    servers: serverHandler.serverData,
+  });
+});
+
+app.get("/servers/*/*", (req, res) => {
+  const serverNum = parseInt(req.url.split("/")[2]);
+  const pageType = req.url.split("/")[3];
+  if (
+    isNaN(serverNum) ||
+    serverNum >= serverHandler.serverData.length ||
+    serverNum < 0
+  ) {
+    res.redirect("/servers");
+    return;
+  }
+
+  if (!["players"].includes(pageType)) {
+    res.redirect("/servers/" + serverNum);
+    return;
+  }
+
+  res.render(websitePath + "/players/players.ejs", {
+    data: serverHandler.getData(serverNum),
+    onlinePlayers: serverHandler.getOnlinePlayers(serverNum),
+    serverNum,
+    serverIp: serverHandler.ip,
   });
 });
 
@@ -36,16 +61,17 @@ app.get("/servers/*", (req, res) => {
 
   if (
     isNaN(serverNum) ||
-    serverNum >= serverHandler.serverData.servers.length ||
+    serverNum >= serverHandler.serverData.length ||
     serverNum < 0
   ) {
     res.redirect("/servers");
     return;
   }
-  res.render(websitePath + "/server.ejs", {
+  res.render(websitePath + "/server/server.ejs", {
     ...serverHandler.getData(serverNum),
     players: serverHandler.getOnlinePlayers(serverNum),
     serverNum,
+    serverIp: serverHandler.ip,
   });
 });
 
@@ -55,7 +81,7 @@ app.get("/newserver", (req, res) => {
     (e) => e.version == data.version
   ).latest_build;
 
-  const newServerNum = serverHandler.serverData.servers.length;
+  const newServerNum = serverHandler.serverData.length;
   serverHandler.newServer(data);
   res.redirect("/servers/" + newServerNum);
 });
@@ -86,4 +112,8 @@ io.on("connection", (socket) => {
 
 server.listen(3000, () => {
   logger.info("Listening on *:3000");
+});
+
+server.on("error", (err) => {
+  console.log("error occurred");
 });

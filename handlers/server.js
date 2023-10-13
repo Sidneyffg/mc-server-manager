@@ -6,9 +6,9 @@ import EventHandler from "./eventHandler.js";
 import { updateServerDirSize } from "./usageHandler.js";
 
 export default class Server {
-  constructor(serverNum) {
+  constructor(serverNum, data) {
     this.serverNum = serverNum;
-    console.log("server: " + serverNum);
+    this.data = data;
     this.#logger = new Logger(["serverHandler", `server ${serverNum}`]);
     this.playerHandler = new PlayerHandler(this);
     this.eventHandler = new EventHandler(this);
@@ -52,7 +52,7 @@ export default class Server {
       this.dirSizeIntervalId = setInterval(async () => {
         await updateServerDirSize(this.serverNum);
         this.#logger.info("Updated server dir size");
-      }, 15000);
+      }, 600000);
     });
   }
   async stop() {

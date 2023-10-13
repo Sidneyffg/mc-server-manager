@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Server</title>
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/website/server.js" defer></script>
+    <script src="/website/server/server.js" defer></script>
     <link rel="stylesheet" href="/website/styles.css" />
     <link
       href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
@@ -24,8 +24,11 @@
       >
         <path d="M400-80 0-480l400-400 71 71-329 329 329 329-71 71Z" />
       </svg>
-      <h1>Sick mc server</h1>
-      <div>
+      <div id="nav-title">
+        <h1>Sick mc server</h1>
+        <p><%= serverIp %>:25565</p>
+      </div>
+      <div id="nav-pages">
         <p>settings</p>
         <p>players</p>
         <p>console</p>
@@ -33,7 +36,7 @@
         <p>backups</p>
       </div>
     </nav>
-    <main>
+    <main id="server-overview-page">
       <div id="overview-onn">
         <div id="active-server-btns" style="display: <%= status == "offline" || status == "stopping" ? "flex" : "none" %>;">
           <button id="overview-stop-btn" onclick="changeServerStatus('stop')">Stop</button>
@@ -43,17 +46,17 @@
           <button id="overview-start-btn" onclick="changeServerStatus('start')">Start</button>
         </div>
       </div>
-      <div id="overview-players">
+      <div id="overview-players" class="players-container">
         <h2>Players</h2>
         <div id="players-div">
           <% for(let i = 0;i<players.length;i++){ %>
             <div>
               <img
-                src="https://mc-heads.net/avatar/<%= players[i].uuid %>/40"
+                src="https://mc-heads.net/avatar/<%= onlinePlayers[i] %>/40"
               />
               <div>
                 <p>USERNAME</p>
-                <p><%= players[i].name %></p>
+                <p><%= onlinePlayers[i] %></p>
               </div>
               <svg
                 xmlns="http://www.w3.org/2000/svg"

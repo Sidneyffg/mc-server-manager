@@ -24,18 +24,18 @@ socket.on("consoleUpdate" + currentServer, (data) => {
   }
 });
 
-socket.on("playerUpdate" + currentServer, (players) => {
+socket.on("playerUpdate" + currentServer, (onlinePlayers) => {
   const playersDiv = document.getElementById("players-div");
   let playersHtml = "";
-  players.forEach((player) => {
+  onlinePlayers.forEach((player) => {
     playersHtml += `
     <div>
     <img
-      src="https://mc-heads.net/avatar/${player.uuid}/40"
+      src="https://mc-heads.net/avatar/${player}/40"
     />
     <div>
       <p>USERNAME</p>
-      <p>${player.name}</p>
+      <p>${player}</p>
     </div>
     <svg
       xmlns="http://www.w3.org/2000/svg"
