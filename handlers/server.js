@@ -9,6 +9,7 @@ export default class Server {
   constructor(serverNum, data) {
     this.serverNum = serverNum;
     this.data = data;
+    this.path = process.cwd() + "/data/servers/" + serverNum;
     this.#logger = new Logger(["serverHandler", `server ${serverNum}`]);
     this.playerHandler = new PlayerHandler(this);
     this.eventHandler = new EventHandler(this);
@@ -18,6 +19,7 @@ export default class Server {
   status = "offline";
   consoleLog = "";
   server = null;
+  path;
   dirSizeIntervalId;
 
   start() {
@@ -68,6 +70,7 @@ export default class Server {
 
     this.status = newStatus;
     listener.emit("_statusUpdate" + this.serverNum, newStatus);
+    this.emit("statusUpdate", newStatus);
     this.#logger.info("Server status is " + newStatus);
   }
 

@@ -5,7 +5,8 @@ import Server from "./server.js";
 
 const logger = new Logger(["serverHandler"]);
 const servers = [];
-export let serverData;
+let serverData;
+export let totalServers;
 export let ip;
 export async function init() {
   logger.info("Initializing...");
@@ -18,6 +19,7 @@ export async function init() {
   ip = await getIp();
   logger.info("Server ip: " + ip);
 
+  totalServers = serverData.length;
   for (let i = 0; i < serverData.length; i++)
     servers.push(new Server(i, serverData[i]));
 
@@ -45,29 +47,34 @@ export function getData(serverNum) {
   return {
     status: s.status,
     consoleLog: s.consoleLog,
+    playerHandler: {
+      onlinePlayers: s.playerHandler.onlinePlayers,
+      allPlayers: s.playerHandler.allPlayers,
+      whitelistedPlayers: s.playerHandler.whitelistedPlayers,
+      oppedPlayers: s.playerHandler.oppedPlayers,
+    },
+    ...serverData[serverNum],
   };
 }
 
-export function getOnlinePlayers(serverNum) {
-  return servers[serverNum].playerHandler.onlinePlayers;
-}
-
 export function newServer(data) {
-  serverData.push({
-    ...data,
-    creationDate: Date.now(),
-  });
-  saveServerData();
-
-  const serverNum = serverData.length - 1;
-  servers.push(new Server(serverNum));
-
   return new Promise((resolve) => {
-    const currentServer = servers[serverNum];
-    currentServer.setServerStatus("downloading");
+    totalServers++;
+
+    serverData.push({
+      ...data,
+      creationDate: Date.now(),
+    });
+    saveServerData();
+
+    const serverNum = serverData.length - 1;
 
     const path = `${process.cwd()}/data/servers/${serverNum}`;
     fs.mkdirSync(path);
+
+    servers.push(new Server(serverNum, serverData[serverNum]));
+    const currentServer = servers[serverNum];
+    currentServer.setServerStatus("downloading");
 
     let propertiesData = `motd=${data.name}\nquery.port=${data.port}\ndifficulty=${data.difficulty}\nserver-port=${data.port}`;
     if (data.seed != "") {
@@ -78,7 +85,7 @@ export function newServer(data) {
     } else {
       propertiesData += "\ngamemode=" + data.gamemode;
     }
-    //fs.writeFileSync(path + "/server.properties", propertiesData);
+    fs.writeFileSync(path + "/server.properties", propertiesData);
     fs.writeFileSync(path + "/eula.txt", "eula=true");
     fs.writeFileSync(
       path + "/start.bat",

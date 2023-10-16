@@ -12,7 +12,7 @@
       rel="stylesheet"
     />
   </head>
-  <body data-serverstatus="<%= status %>">
+  <body data-serverstatus="<%= serverData.status %>">
     <nav>
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -29,34 +29,34 @@
         <p><%= serverIp %>:25565</p>
       </div>
       <div id="nav-pages">
-        <p>settings</p>
-        <p>players</p>
-        <p>console</p>
-        <p>plugins</p>
-        <p>backups</p>
+        <a href="./<%= serverNum %>/settings">settings</a>
+        <a href="./<%= serverNum %>/players">players</a>
+        <a href="./<%= serverNum %>/console">console</a>
+        <a href="./<%= serverNum %>/plugins">plugins</a>
+        <a href="./<%= serverNum %>/backups">backups</a>
       </div>
     </nav>
     <main id="server-overview-page">
       <div id="overview-onn">
-        <div id="active-server-btns" style="display: <%= status == "offline" || status == "stopping" ? "flex" : "none" %>;">
+        <div id="active-server-btns" style="display: <%= serverData.status == "offline" || serverData.status == "stopping" ? "flex" : "none" %>;">
           <button id="overview-stop-btn" onclick="changeServerStatus('stop')">Stop</button>
           <button id="overview-restart-btn" onclick="changeServerStatus('restart')">Restart</button>
         </div>
-        <div id="inactive-server-btns" style="display: <%= status == "offline" || status == "stopping" ? "none" : "flex" %>;">
+        <div id="inactive-server-btns" style="display: <%= serverData.status == "offline" || serverData.status == "stopping" ? "none" : "flex" %>;">
           <button id="overview-start-btn" onclick="changeServerStatus('start')">Start</button>
         </div>
       </div>
       <div id="overview-players" class="players-container">
         <h2>Players</h2>
         <div id="players-div">
-          <% for(let i = 0;i<players.length;i++){ %>
+          <% for(let i = 0;i<serverData.playerHandler.onlinePlayers.length;i++){ %>
             <div>
               <img
-                src="https://mc-heads.net/avatar/<%= onlinePlayers[i] %>/40"
+                src="https://mc-heads.net/avatar/<%= serverData.playerHandler.onlinePlayers[i] %>/40"
               />
               <div>
                 <p>USERNAME</p>
-                <p><%= onlinePlayers[i] %></p>
+                <p><%= serverData.playerHandler.onlinePlayers[i] %></p>
               </div>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -77,21 +77,21 @@
         <h2>Info</h2>
         <div>
           <p>Server type</p>
-          <p>Paper</p>
+          <p><%= serverData.type %></p>
         </div>
         <div>
           <p>Server version</p>
-          <p>1.20.1</p>
+          <p><%= serverData.version %></p>
         </div>
         <div>
           <p>Server build</p>
-          <p>196 (latest)</p>
+          <p><%= serverData.build %></p>
         </div>
       </div>
       <div id="overview-console">
         <p id="server-console">
-          <% if(status != "offline"){ %>
-          <% const serverLogArr = consoleLog.split("\n") %>
+          <% if(serverData.status != "offline"){ %>
+          <% const serverLogArr = serverData.consoleLog.split("\n") %>
             <% let currentType = "INFO"%>
              <% for( let i = 0; i < serverLogArr.length; i++ ) { %>
               <% const type = /\[[0-9]{2}\:[0-9]{2}\:[0-9]{2} ([A-Z]{4,5})|\]:/m.exec(serverLogArr[i]); %>

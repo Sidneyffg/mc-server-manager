@@ -81,7 +81,6 @@ body {
   width: 10px;
   height: 10px;
   margin-left: auto;
-  background-color: lime;
   border-radius: 50%;
 }
 
@@ -194,8 +193,8 @@ nav > svg {
   margin-left: auto;
 }
 
-nav > div > p {
-  cursor: pointer;
+#nav-pages > a {
+  text-decoration: none;
 }
 
 main#server-overview-page {
@@ -252,6 +251,25 @@ main#server-overview-page {
   padding: 10px;
   background-color: rgb(21, 23, 24);
   border-radius: 10px;
+}
+
+.players-container > div {
+  --grid-layout-gap: 1rem;
+  --grid-column-count: 99;
+  --grid-item--min-width: 250px;
+
+  --gap-count: calc(var(--grid-column-count) - 1);
+  --total-gap-width: calc(var(--gap-count) * var(--grid-layout-gap));
+  --grid-item--max-width: calc(
+    (100% - var(--total-gap-width)) / var(--grid-column-count)
+  );
+
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(max(var(--grid-item--min-width), var(--grid-item--max-width)), 1fr)
+  );
+  grid-gap: var(--grid-layout-gap);
 }
 
 .players-container > div > div {
@@ -366,7 +384,7 @@ main#server-players-page {
   display: grid;
   min-height: calc(100vh - 16px - 62px);
   grid-template-columns: 1fr 2fr;
-  grid-template-rows: 1fr 1fr;
+  grid-template-rows: auto auto;
   grid-template-areas:
     "online-players whitelisted-players"
     "opped-players all-players";

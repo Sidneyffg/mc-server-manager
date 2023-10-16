@@ -20,14 +20,29 @@ app.use("/website", express.static(websitePath));
 
 await versionHandler.getServerVersions();
 
+function statusToColor(s) {
+  return [
+    { s: "online", c: "lime" },
+    { s: "offline", c: "grey" },
+    { s: "starting", c: "cyan" },
+    { s: "stopping", c: "cyan" },
+    { s: "downloading", c: "yellow" },
+  ].find((e) => e.s == s).c;
+}
+
 app.get("/", (req, res) => {
   res.redirect("/servers");
 });
 
 app.get("/servers", (req, res) => {
+  let serverData = [];
+  for (let i = 0; i < serverHandler.totalServers; i++) {
+    serverData.push(serverHandler.getData(i));
+  }
   res.render(websitePath + "/index.ejs", {
     versions: versionHandler.allVersions,
-    servers: serverHandler.serverData,
+    serverData,
+    statusToColor,
   });
 });
 
@@ -36,7 +51,7 @@ app.get("/servers/*/*", (req, res) => {
   const pageType = req.url.split("/")[3];
   if (
     isNaN(serverNum) ||
-    serverNum >= serverHandler.serverData.length ||
+    serverNum >= serverHandler.totalServers ||
     serverNum < 0
   ) {
     res.redirect("/servers");
@@ -47,10 +62,8 @@ app.get("/servers/*/*", (req, res) => {
     res.redirect("/servers/" + serverNum);
     return;
   }
-
   res.render(websitePath + "/players/players.ejs", {
-    data: serverHandler.getData(serverNum),
-    onlinePlayers: serverHandler.getOnlinePlayers(serverNum),
+    serverData: serverHandler.getData(serverNum),
     serverNum,
     serverIp: serverHandler.ip,
   });
@@ -61,15 +74,14 @@ app.get("/servers/*", (req, res) => {
 
   if (
     isNaN(serverNum) ||
-    serverNum >= serverHandler.serverData.length ||
+    serverNum >= serverHandler.totalServers ||
     serverNum < 0
   ) {
     res.redirect("/servers");
     return;
   }
   res.render(websitePath + "/server/server.ejs", {
-    ...serverHandler.getData(serverNum),
-    players: serverHandler.getOnlinePlayers(serverNum),
+    serverData: serverHandler.getData(serverNum),
     serverNum,
     serverIp: serverHandler.ip,
   });
@@ -81,9 +93,9 @@ app.get("/newserver", (req, res) => {
     (e) => e.version == data.version
   ).latest_build;
 
-  const newServerNum = serverHandler.serverData.length;
+  const newServerNum = serverHandler.totalServers;
   serverHandler.newServer(data);
-  res.redirect("/servers/" + newServerNum);
+  setTimeout(() => res.redirect("/servers/" + newServerNum), 250);
 });
 
 io.on("connection", (socket) => {

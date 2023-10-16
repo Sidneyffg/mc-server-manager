@@ -24,7 +24,7 @@ socket.on("consoleUpdate" + currentServer, (data) => {
   }
 });
 
-socket.on("playerUpdate" + currentServer, (onlinePlayers) => {
+socket.on("onlinePlayersUpdate" + currentServer, (onlinePlayers) => {
   const playersDiv = document.getElementById("players-div");
   let playersHtml = "";
   onlinePlayers.forEach((player) => {
