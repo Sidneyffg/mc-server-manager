@@ -33,7 +33,7 @@ export default class Server {
         `${process.cwd()}/data/servers/${this.serverNum}/start.bat`
       );
       this.setServerStatus("starting");
-
+      
       this.server.stdout.on("data", (data) => {
         data = data.toString();
         this.eventHandler.handle(data, resolve);

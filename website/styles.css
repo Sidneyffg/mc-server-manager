@@ -97,7 +97,7 @@ body {
 }
 
 #darkener {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
@@ -106,9 +106,9 @@ body {
   background-color: black;
 }
 
-#new-server-menu {
+#std-menu {
   padding: 20px;
-  position: absolute;
+  position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -117,17 +117,21 @@ body {
   border-radius: 5px;
 }
 
-#new-server-menu h1 {
+#std-menu h1 {
   margin-bottom: 5px;
 }
 
-#new-server-menu p {
+#std-menu p {
   color: rgb(179, 179, 179);
 }
 
-#new-server-menu input,
-#new-server-menu select,
-#new-server-menu button {
+#std-menu > form {
+  position: relative;
+}
+
+#std-menu input,
+#std-menu select,
+#std-menu button {
   height: 34px;
   outline: none;
   border: 1px black solid;
@@ -138,17 +142,17 @@ body {
   padding: 6px;
 }
 
-#new-server-menu > form > input:not(.small-imput) {
+#std-menu > form > input:not(.small-input) {
   width: 100%;
   padding-left: 8px;
 }
 
-#new-server-menu > form > div {
+#std-menu > form > div {
   display: flex;
   gap: 40px;
 }
 
-#new-server-menu button {
+#std-menu button {
   float: right;
   background-color: rgb(50, 131, 153);
 }
@@ -253,7 +257,29 @@ main#server-overview-page {
   border-radius: 10px;
 }
 
-.players-container > div {
+.players-container > div:nth-child(1) {
+  display: flex;
+}
+
+.players-container > div > svg {
+  margin-left: auto;
+  height: 30px;
+  width: auto;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.players-container > div > svg.disabled {
+  cursor: not-allowed;
+  transition: all 0s;
+  opacity: 40%;
+}
+
+.players-container > div > svg:hover {
+  transform: rotate(90deg);
+}
+
+.players-container > div:nth-child(2) {
   --grid-layout-gap: 1rem;
   --grid-column-count: 99;
   --grid-item--min-width: 250px;
@@ -295,6 +321,11 @@ main#server-overview-page {
   height: 35px;
   width: auto;
   cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.players-container > div > div > svg:hover {
+  transform: rotate(180deg);
 }
 
 #overview-info {
@@ -388,4 +419,46 @@ main#server-players-page {
   grid-template-areas:
     "online-players whitelisted-players"
     "opped-players all-players";
+}
+
+#std-menu > form > input:focus ~ div#player-search,
+#player-search:hover:not(.hidden) {
+  display: block !important;
+}
+
+#player-search {
+  position: absolute;
+  top: 53px;
+  height: fit-content;
+  width: 210px;
+  background-color: rgb(21, 23, 24);
+  border-radius: 5px;
+  padding: 5px;
+  display: none !important;
+}
+
+#player-search > div {
+  width: 100%;
+  display: flex;
+  cursor: pointer;
+}
+
+#player-search > div:not(:first-child) {
+  margin-top: 5px;
+}
+
+#player-search > div > img {
+  border-radius: 5px;
+  margin-right: 5px;
+}
+
+#player-search > div > div > p:nth-child(2) {
+  color: white;
+}
+
+#selected-player-img {
+  position: absolute;
+  top: 26px;
+  left: 185px;
+  border-radius: 5px;
 }

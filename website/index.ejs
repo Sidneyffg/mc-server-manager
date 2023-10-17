@@ -45,7 +45,7 @@
       <% } %>
     </div>
     <div id="darkener" onclick="closeNewServer()" style="display: none;"></div>
-    <div id="new-server-menu" style="display: none;">
+    <div id="std-menu" style="display: none;">
       <h1>New server</h1>
       <form action="/newserver">
         <p>Name</p>
@@ -88,7 +88,7 @@
         <p>Seed (optional)</p>
         <input type="text" name="seed"/>
         <p>Port</p>
-        <input type="number" name="port" min="1" max="65535" pattern="/[0-9]" placeholder="25565" class="small-imput" required/>
+        <input type="number" name="port" min="1" max="65535" pattern="/[0-9]" placeholder="25565" class="small-input" required/>
         <button type="submit">Create</button>
       </form>
     </div>

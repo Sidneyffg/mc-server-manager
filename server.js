@@ -12,6 +12,7 @@ import * as listener from "./handlers/listener.js";
 import Logger from "./handlers/consoleHandler.js";
 const logger = new Logger(["webserver"]);
 import * as usageHandler from "./handlers/usageHandler.js";
+import { callbackify } from "util";
 
 app.set("view engine", "ejs");
 const websitePath = process.cwd() + "/website";
@@ -29,6 +30,10 @@ function statusToColor(s) {
     { s: "downloading", c: "yellow" },
   ].find((e) => e.s == s).c;
 }
+
+setTimeout(async () => {
+  //JSON.parse("klsjdhf.sdf.dsf.f.sdf.sdf.sdf.sdf.s.dfssdf.sdf.sdf..sdf.sdf");
+}, 30000);
 
 app.get("/", (req, res) => {
   res.redirect("/servers");
@@ -120,6 +125,24 @@ io.on("connection", (socket) => {
       socket.emit("startError", "data");
     });
   });
+
+  socket.on("addPlayerToWhitelist", (serverNum, playerName, callback) => {
+    const serverData = serverHandler.getData(serverNum);
+    if (serverData.status != "online") {
+      callback(false);
+      return;
+    }
+    callback(serverHandler.addPlayerToWhitelist(serverNum, playerName));
+  });
+
+  socket.on("makePlayerOperator", (serverNum, playerName, callback) => {
+    const serverData = serverHandler.getData(serverNum);
+    if (serverData.status != "online") {
+      callback(false);
+      return;
+    }
+    callback(serverHandler.makePlayerOperator(serverNum, playerName));
+  });
 });
 
 server.listen(3000, () => {
@@ -128,4 +151,11 @@ server.listen(3000, () => {
 
 server.on("error", (err) => {
   console.log("error occurred");
+});
+
+process.on("beforeExit", (code) => {
+  console.log("jaja");
+  serverHandler.stopAllServers(() => {
+    process.exit(code);
+  });
 });

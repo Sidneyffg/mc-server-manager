@@ -127,5 +127,17 @@ export default class PlayerHandler {
     );
   }
 
+  addPlayerToWhitelist(name) {
+    if (this.whitelistedPlayers.includes(name)) return false;
+    this.server.server.stdin.write(`whitelist add ${name}\n`);
+    return true;
+  }
+
+  makePlayerOperator(name) {
+    if (this.oppedPlayers.includes(name)) return false;
+    this.server.server.stdin.write(`op ${name}\n`);
+    return true;
+  }
+
   #logger;
 }

@@ -1,5 +1,5 @@
 const darkener = document.getElementById("darkener"),
-  newServerMenu = document.getElementById("new-server-menu");
+  newServerMenu = document.getElementById("std-menu");
 
 function closeNewServer() {
   darkener.style.display = "none";

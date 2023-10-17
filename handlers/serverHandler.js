@@ -111,6 +111,29 @@ export function newServer(data) {
   });
 }
 
+export function stopAllServers(callback) {
+  let count = 0;
+  for (let i = 0; i < totalServers; i++) {
+    if (getData(i).status == "online") {
+      stop(i).then(() => {
+        count++;
+        if (count == totalServers) callback();
+      });
+    } else {
+      count++;
+    }
+  }
+  if (totalServers == count) callback();
+}
+
+export function addPlayerToWhitelist(serverNum, name) {
+  return servers[serverNum].playerHandler.addPlayerToWhitelist(name);
+}
+
+export function makePlayerOperator(serverNum, name) {
+  return servers[serverNum].playerHandler.makePlayerOperator(name);
+}
+
 async function saveServerData() {
   fs.writeFileSync(
     "./data/serverData.json",
