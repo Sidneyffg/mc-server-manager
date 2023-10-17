@@ -269,12 +269,6 @@ main#server-overview-page {
   cursor: pointer;
 }
 
-.players-container > div > svg.disabled {
-  cursor: not-allowed;
-  transition: all 0s;
-  opacity: 40%;
-}
-
 .players-container > div > svg:hover {
   transform: rotate(90deg);
 }

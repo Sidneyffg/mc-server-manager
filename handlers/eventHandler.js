@@ -1,6 +1,6 @@
 import Logger from "./consoleHandler.js";
 import * as listener from "./listener.js";
-import PlayerHandler from "./playerHandler.js";
+import TodoItem from "./todoItem.js";
 
 export default class EventHandler {
   constructor(server) {
@@ -10,8 +10,38 @@ export default class EventHandler {
       "server " + server.serverNum,
       "eventHandler",
     ]);
+
+    this.data = server.data.eventHandler;
+    if (!this.data) {
+      this.server.data.eventHandler = {
+        todo: {
+          online: [],
+          ofline: [],
+        },
+      };
+      this.data = server.data.eventHandler;
+    }
+
+    server.on("statusUpdate", (status) => {
+      switch (status) {
+        case "online":
+          this.data.todo.online.forEach((todoItem) => {
+            switch (todoItem.action) {
+              case "addPlayerToWhitelist":
+                server.playerHandler.addPlayerToWhitelist(todoItem.value);
+                break;
+              case "makePlayerOperator":
+                server.playerHandler.makePlayerOperator(todoItem.value);
+                break;
+            }
+          });
+          this.data.todo.online = [];
+          break;
+        case "offline":
+          break;
+      }
+    });
   }
-  #logger;
 
   handle(data, resolve) {
     listener.emit("_consoleUpdate" + this.server.serverNum, data);
@@ -57,4 +87,10 @@ export default class EventHandler {
     listener.emit("_consoleUpdate" + this.server.serverNum, err);
     this.#logger.error(err);
   }
+
+  addTodoItem(data) {
+    this.data.todo[data.on].push(new TodoItem(data));
+  }
+
+  #logger;
 }

@@ -134,6 +134,11 @@ export function makePlayerOperator(serverNum, name) {
   return servers[serverNum].playerHandler.makePlayerOperator(name);
 }
 
+export function addTodoItem(serverNum, data) {
+  servers[serverNum].eventHandler.addTodoItem(data);
+  saveServerData();
+}
+
 async function saveServerData() {
   fs.writeFileSync(
     "./data/serverData.json",

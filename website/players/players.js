@@ -2,15 +2,6 @@ const socket = io();
 
 const currentServer = window.location.pathname.split("/")[2];
 
-const playerAdderSvgs = document.getElementsByClassName("player-adder-svg");
-
-socket.on("statusUpdate" + currentServer, (status) => {
-  for (let i = 0; i < playerAdderSvgs.length; i++) {
-    if (status == "online") playerAdderSvgs[i].classList.remove("disabled");
-    else playerAdderSvgs[i].classList.add("disabled");
-  }
-});
-
 const onlinePlayers = document.getElementById("onlinePlayers");
 const allPlayers = document.getElementById("allPlayers");
 const whitelistedPlayers = document.getElementById("whitelistedPlayers");

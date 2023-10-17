@@ -129,7 +129,12 @@ io.on("connection", (socket) => {
   socket.on("addPlayerToWhitelist", (serverNum, playerName, callback) => {
     const serverData = serverHandler.getData(serverNum);
     if (serverData.status != "online") {
-      callback(false);
+      serverHandler.addTodoItem(serverNum, {
+        on: "online",
+        action: "addPlayerToWhitelist",
+        value: playerName,
+      });
+      callback(true);
       return;
     }
     callback(serverHandler.addPlayerToWhitelist(serverNum, playerName));
@@ -138,7 +143,12 @@ io.on("connection", (socket) => {
   socket.on("makePlayerOperator", (serverNum, playerName, callback) => {
     const serverData = serverHandler.getData(serverNum);
     if (serverData.status != "online") {
-      callback(false);
+      serverHandler.addTodoItem(serverNum, {
+        on: "online",
+        action: "makePlayerOperator",
+        value: playerName,
+      });
+      callback(true);
       return;
     }
     callback(serverHandler.makePlayerOperator(serverNum, playerName));
