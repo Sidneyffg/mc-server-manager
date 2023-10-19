@@ -177,11 +177,11 @@ nav > svg {
 
 #nav-title {
   margin-left: -10px;
+  cursor: pointer;
 }
 
 #nav-title > h1 {
   font-size: 2rem;
-  cursor: pointer;
 }
 
 #nav-title > p {
@@ -298,7 +298,6 @@ main#server-overview-page {
   padding: 5px;
   background-color: rgb(15, 16, 17);
   border-radius: 5px;
-  margin-top: 15px;
 }
 
 .players-container > div > div > img {

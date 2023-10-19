@@ -1,6 +1,5 @@
 import * as listener from "./listener.js";
 import Logger from "./consoleHandler.js";
-import fs, { watch } from "fs";
 
 export default class PlayerHandler {
   constructor(server) {
@@ -10,6 +9,7 @@ export default class PlayerHandler {
       "server " + server.serverNum,
       "playerhandler",
     ]);
+    this.fileHandler = this.server.fileHandler;
 
     this.#updateAllPlayergroups();
 
@@ -56,24 +56,16 @@ export default class PlayerHandler {
   oppedPlayers = [];
 
   #wachPlayers() {
-    fs.watchFile(
-      `${this.server.path}/usercache.json`,
-      this.#updateAllPlayers.bind(this)
-    );
-    fs.watchFile(
-      `${this.server.path}/whitelist.json`,
+    this.fileHandler.watchFile("usercache", this.#updateAllPlayers.bind(this));
+    this.fileHandler.watchFile(
+      "whitelist",
       this.#updateWhitelistedPlayers.bind(this)
     );
-    fs.watchFile(
-      `${this.server.path}/ops.json`,
-      this.#updateOppedPlayers.bind(this)
-    );
+    this.fileHandler.watchFile("ops", this.#updateOppedPlayers.bind(this));
   }
 
   #unwatchPlayers() {
-    fs.unwatchFile(`${this.server.path}/usercache.json`);
-    fs.unwatchFile(`${this.server.path}/whitelist.json`);
-    fs.unwatchFile(`${this.server.path}/ops.json`);
+    this.fileHandler.unwatchFiles("usercache", "whitelist", "ops");
   }
 
   #updateAllPlayergroups() {
@@ -83,26 +75,14 @@ export default class PlayerHandler {
   }
 
   #updateAllPlayers() {
-    let path = `${this.server.path}/usercache.json`;
-    if (!fs.existsSync(path)) {
-      fs.writeFileSync(path, "[]");
-    }
-
-    let allPlayers = fs.readFileSync(path);
-    allPlayers = JSON.parse(allPlayers);
+    const allPlayers = this.fileHandler.readFile("usercache");
 
     this.allPlayers = allPlayers.map((e) => e.name);
     listener.emit("_allPlayersUpdate" + this.server.serverNum, this.allPlayers);
   }
 
   #updateWhitelistedPlayers() {
-    let path = `${this.server.path}/whitelist.json`;
-    if (!fs.existsSync(path)) {
-      fs.writeFileSync(path, "[]");
-    }
-
-    let whitelistedPlayers = fs.readFileSync(path);
-    whitelistedPlayers = JSON.parse(whitelistedPlayers);
+    const whitelistedPlayers = this.fileHandler.readFile("whitelist");
 
     this.whitelistedPlayers = whitelistedPlayers.map((e) => e.name);
     listener.emit(
@@ -112,13 +92,7 @@ export default class PlayerHandler {
   }
 
   #updateOppedPlayers() {
-    let path = `${this.server.path}/ops.json`;
-    if (!fs.existsSync(path)) {
-      fs.writeFileSync(path, "[]");
-    }
-
-    let oppedPlayers = fs.readFileSync(path);
-    oppedPlayers = JSON.parse(oppedPlayers);
+    const oppedPlayers = this.fileHandler.readFile("ops")
 
     this.oppedPlayers = oppedPlayers.map((e) => e.name);
     listener.emit(

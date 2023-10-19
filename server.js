@@ -100,7 +100,7 @@ app.get("/newserver", (req, res) => {
 
   const newServerNum = serverHandler.totalServers;
   serverHandler.newServer(data);
-  setTimeout(() => res.redirect("/servers/" + newServerNum), 250);
+  setTimeout(() => res.redirect("/servers/" + newServerNum), 500);
 });
 
 io.on("connection", (socket) => {

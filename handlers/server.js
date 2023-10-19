@@ -1,6 +1,7 @@
 import { spawn } from "child_process";
 import * as listener from "./listener.js";
 import Logger from "./consoleHandler.js";
+import FileHandler from "./fileHandler.js";
 import PlayerHandler from "./playerHandler.js";
 import EventHandler from "./eventHandler.js";
 import { updateServerDirSize } from "./usageHandler.js";
@@ -11,6 +12,7 @@ export default class Server {
     this.data = data;
     this.path = process.cwd() + "/data/servers/" + serverNum;
     this.#logger = new Logger(["serverHandler", `server ${serverNum}`]);
+    this.fileHandler = new FileHandler(this);
     this.playerHandler = new PlayerHandler(this);
     this.eventHandler = new EventHandler(this);
   }
@@ -33,7 +35,7 @@ export default class Server {
         `${process.cwd()}/data/servers/${this.serverNum}/start.bat`
       );
       this.setServerStatus("starting");
-      
+
       this.server.stdout.on("data", (data) => {
         data = data.toString();
         this.eventHandler.handle(data, resolve);
