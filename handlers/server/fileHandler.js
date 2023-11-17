@@ -1,4 +1,4 @@
-import Logger from "./consoleHandler.js";
+import Logger from "../consoleHandler.js";
 import fs from "fs";
 
 export default class FileHandler {
@@ -22,8 +22,9 @@ export default class FileHandler {
     const file = this.#getFile(fileName);
     const path = this.#getPath(file);
     this.#checkFile(file);
-    const data = fs.readFileSync(path);
-    return JSON.parse(data);
+    let data = fs.readFileSync(path, "utf-8");
+    if (file.isJSON) data = JSON.parse(data);
+    return data;
   }
 
   writeFile(fileName, data) {
@@ -31,7 +32,7 @@ export default class FileHandler {
       const file = this.#getFile(fileName);
       const path = this.#getPath(file);
       this.#checkFile(file);
-      data = JSON.stringify(data);
+      if (file.isJSON) data = JSON.stringify(data);
       fs.writeFileSync(path, data);
       resolve();
     });
@@ -74,15 +75,24 @@ const files = [
     file: "usercache",
     path: "/usercache.json",
     fillFileWith: "[]",
+    isJSON: true,
   },
   {
     file: "whitelist",
     path: "/whitelist.json",
     fillFileWith: "[]",
+    isJSON: true,
   },
   {
     file: "ops",
     path: "/ops.json",
     fillFileWith: "[]",
+    isJSON: true,
+  },
+  {
+    file: "properties",
+    path: "/server.properties",
+    fillFileWith: "",
+    isJSON: false,
   },
 ];

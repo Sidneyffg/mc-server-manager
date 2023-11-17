@@ -4,8 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Settings</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/website/settings/settings.js" defer></script>
+    <link rel="stylesheet" href="/website/styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
-  <body>
+  <body data-serverstatus="<%= serverData.status %>">
     <nav>
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -30,7 +37,61 @@
       </div>
     </nav>
     <main id="server-settings-page">
-      
+      <div id="settings-selector">
+        <h3>Settings</h3>
+        <p>General</p>
+        <p>Paper</p>
+      </div>
+      <div id="server-general-settings">
+        <div>
+        <% let i = 0; %>
+        <% const editableSettings = serverData.settingsHandler.editableSettings; %>
+        <% const halfSettings = Math.floor(Object.keys(editableSettings).length / 2) %>
+        <% for(const setting in editableSettings) { %>
+          <% const value = editableSettings[setting].value %>
+          <div>
+          <p><%= setting %></p>
+          <% switch(editableSettings[setting].type){ 
+            case "bool": %>
+              
+              <label class="switch settings-styling">
+                <input type="checkbox" class="setting-item" onchange="settingsChange()"  <%= value == "true" ? "checked" : "" %> data-setting-name="<%= setting %>">
+                <span class="slider-round"></span>
+              </label>
+              <% break 
+            case "int": %>
+              <input type="number"  class="settings-styling setting-item" onchange="settingsChange()" onkeyup="settingsChange()" value="<%= value %>"data-setting-name="<%= setting %>">
+              <% break 
+            case "option": %>
+              <select class="settings-styling setting-item" onchange="settingsChange()" data-setting-name="<%= setting %>">
+                <% for(let i = 0;i<editableSettings[setting].options.length;i++){ %>
+                  <% const isOptionSelected = editableSettings[setting].options[i] == value %>
+                  <option <%= isOptionSelected ? "selected" : "" %> ><%= editableSettings[setting].options[i] %></option>
+                <% } %>
+              </select>
+              <% break 
+            case "string": %>
+              <input type="text" onkeyup="settingsChange()" class="settings-styling setting-item" value="<%= value %>" data-setting-name="<%= setting %>">
+            <% break %>
+          <% } %>
+          </div>
+          <% if(i == halfSettings){ %>
+            </div>
+            <div>
+          <% } %>
+          <% i++ %>
+        <% } %>
+        </div>
+      </div>
     </main>
+
+    <div id="edit-popup" style="display: none;">
+        <p id="edit-popup-header">Server needs to restart to save changes</p>
+        <div>
+          <button onclick="discardChanges()" id="edit-popup-discard-btn">Discard</button>
+          <button onclick="saveChanges(false)" id="edit-popup-save-btn">Save</button>
+          <button onclick="saveChanges(true)" id="edit-popup-restart-btn">Restart now</button>
+        </div>
+    </div>
   </body>
 </html>

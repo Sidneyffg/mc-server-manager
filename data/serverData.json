@@ -1,1 +1,70 @@
-[]
+[
+  {
+    "name": "ddd",
+    "type": "paper",
+    "version": "1.20.1",
+    "gamemode": "creative",
+    "difficulty": "hard",
+    "seed": "",
+    "port": "25575",
+    "build": 196,
+    "creationDate": 1697217227941,
+    "eventHandler": {
+      "todo": {
+        "online": [],
+        "offline": []
+      }
+    }
+  },
+  {
+    "name": "asd",
+    "type": "paper",
+    "version": "1.20.2",
+    "gamemode": "survival",
+    "difficulty": "hard",
+    "seed": "",
+    "port": "25566",
+    "build": 240,
+    "creationDate": 1697448103228,
+    "eventHandler": {
+      "todo": {
+        "online": [],
+        "offline": []
+      }
+    }
+  },
+  {
+    "name": "test",
+    "type": "paper",
+    "version": "1.20.1",
+    "gamemode": "creative",
+    "difficulty": "peaceful",
+    "seed": "",
+    "port": "25567",
+    "build": 196,
+    "creationDate": 1697534117632,
+    "eventHandler": {
+      "todo": {
+        "online": [],
+        "offline": []
+      }
+    }
+  },
+  {
+    "name": "test server",
+    "type": "paper",
+    "version": "1.20.1",
+    "gamemode": "survival",
+    "difficulty": "hard",
+    "seed": "",
+    "port": "25568",
+    "build": 196,
+    "creationDate": 1697548351367,
+    "eventHandler": {
+      "todo": {
+        "online": [],
+        "offline": []
+      }
+    }
+  }
+]

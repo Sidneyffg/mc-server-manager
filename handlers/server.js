@@ -1,9 +1,10 @@
 import { spawn } from "child_process";
 import * as listener from "./listener.js";
 import Logger from "./consoleHandler.js";
-import FileHandler from "./fileHandler.js";
-import PlayerHandler from "./playerHandler.js";
-import EventHandler from "./eventHandler.js";
+import FileHandler from "./server/fileHandler.js";
+import SettingsHandler from "./server/settingsHandler.js";
+import PlayerHandler from "./server/playerHandler.js";
+import EventHandler from "./server/eventHandler.js";
 import { updateServerDirSize } from "./usageHandler.js";
 
 export default class Server {
@@ -13,6 +14,7 @@ export default class Server {
     this.path = process.cwd() + "/data/servers/" + serverNum;
     this.#logger = new Logger(["serverHandler", `server ${serverNum}`]);
     this.fileHandler = new FileHandler(this);
+    this.settingsHandler = new SettingsHandler(this);
     this.playerHandler = new PlayerHandler(this);
     this.eventHandler = new EventHandler(this);
   }

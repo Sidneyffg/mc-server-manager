@@ -1,5 +1,5 @@
-import * as listener from "./listener.js";
-import Logger from "./consoleHandler.js";
+import * as listener from "../listener.js";
+import Logger from "../consoleHandler.js";
 
 export default class PlayerHandler {
   constructor(server) {
@@ -92,7 +92,7 @@ export default class PlayerHandler {
   }
 
   #updateOppedPlayers() {
-    const oppedPlayers = this.fileHandler.readFile("ops")
+    const oppedPlayers = this.fileHandler.readFile("ops");
 
     this.oppedPlayers = oppedPlayers.map((e) => e.name);
     listener.emit(

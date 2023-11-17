@@ -1,6 +1,6 @@
-import Logger from "./consoleHandler.js";
-import * as listener from "./listener.js";
-import TodoItem from "./todoItem.js";
+import Logger from "../consoleHandler.js";
+import * as listener from "../listener.js";
+import TodoItem from "../todoItem.js";
 
 export default class EventHandler {
   constructor(server) {
@@ -16,7 +16,7 @@ export default class EventHandler {
       this.server.data.eventHandler = {
         todo: {
           online: [],
-          ofline: [],
+          offline: [],
         },
       };
       this.data = server.data.eventHandler;
@@ -38,6 +38,14 @@ export default class EventHandler {
           this.data.todo.online = [];
           break;
         case "offline":
+          this.data.todo.offline.forEach((todoItem) => {
+            switch (todoItem.action) {
+              case "saveServerProperties":
+                this.server.fileHandler.writeFile("properties", todoItem.value);
+                break;
+            }
+          });
+          this.data.todo.offline = [];
           break;
       }
     });
@@ -88,8 +96,15 @@ export default class EventHandler {
     this.#logger.error(err);
   }
 
-  addTodoItem(data) {
-    this.data.todo[data.on].push(new TodoItem(data));
+  addOnlineTodoItem(data) {
+    this.data.todo.online.push(new TodoItem(data));
+  }
+
+  addOfflineTodoItem(data) {
+    this.data.todo.offline.push(new TodoItem(data));
+    this.#logger.info(
+      "Added todo item:\n" + JSON.stringify(this.settings, null, 2)
+    );
   }
 
   #logger;

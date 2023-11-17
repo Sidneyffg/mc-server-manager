@@ -53,6 +53,10 @@ export function getData(serverNum) {
       whitelistedPlayers: s.playerHandler.whitelistedPlayers,
       oppedPlayers: s.playerHandler.oppedPlayers,
     },
+    settingsHandler: {
+      settings: s.settingsHandler.settings,
+      editableSettings: s.settingsHandler.editableSettings,
+    },
     ...serverData[serverNum],
   };
 }
@@ -137,6 +141,10 @@ export function makePlayerOperator(serverNum, name) {
 export function addTodoItem(serverNum, data) {
   servers[serverNum].eventHandler.addTodoItem(data);
   saveServerData();
+}
+
+export function emitInServer(serverNum, event, data) {
+  servers[serverNum].emit(event, data);
 }
 
 async function saveServerData() {

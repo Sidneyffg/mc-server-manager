@@ -31,10 +31,6 @@ function statusToColor(s) {
   ].find((e) => e.s == s).c;
 }
 
-setTimeout(async () => {
-  //JSON.parse("klsjdhf.sdf.dsf.f.sdf.sdf.sdf.sdf.s.dfssdf.sdf.sdf..sdf.sdf");
-}, 30000);
-
 app.get("/", (req, res) => {
   res.redirect("/servers");
 });
@@ -63,11 +59,11 @@ app.get("/servers/*/*", (req, res) => {
     return;
   }
 
-  if (!["players"].includes(pageType)) {
+  if (!["players", "settings"].includes(pageType)) {
     res.redirect("/servers/" + serverNum);
     return;
   }
-  res.render(websitePath + "/players/players.ejs", {
+  res.render(websitePath + `/${pageType}/${pageType}.ejs`, {
     serverData: serverHandler.getData(serverNum),
     serverNum,
     serverIp: serverHandler.ip,
@@ -129,8 +125,7 @@ io.on("connection", (socket) => {
   socket.on("addPlayerToWhitelist", (serverNum, playerName, callback) => {
     const serverData = serverHandler.getData(serverNum);
     if (serverData.status != "online") {
-      serverHandler.addTodoItem(serverNum, {
-        on: "online",
+      serverHandler.addOnlineTodoItem(serverNum, {
         action: "addPlayerToWhitelist",
         value: playerName,
       });
@@ -143,8 +138,7 @@ io.on("connection", (socket) => {
   socket.on("makePlayerOperator", (serverNum, playerName, callback) => {
     const serverData = serverHandler.getData(serverNum);
     if (serverData.status != "online") {
-      serverHandler.addTodoItem(serverNum, {
-        on: "online",
+      serverHandler.addOnlineTodoItem(serverNum, {
         action: "makePlayerOperator",
         value: playerName,
       });
@@ -153,14 +147,21 @@ io.on("connection", (socket) => {
     }
     callback(serverHandler.makePlayerOperator(serverNum, playerName));
   });
+
+  socket.on("updateSettings", async (serverNum, newSettings, force) => {
+    serverHandler.emitInServer(serverNum, "updateSettings", newSettings);
+    if (force) {
+      if (serverHandler.getData(serverNum).status != "online") return;
+      await serverHandler.stop(serverNum);
+      serverHandler.start(serverNum).catch(() => {
+        socket.emit("startError", "data");
+      });
+    }
+  });
 });
 
 server.listen(3000, () => {
   logger.info("Listening on *:3000");
-});
-
-server.on("error", (err) => {
-  console.log("error occurred");
 });
 
 process.on("beforeExit", (code) => {
