@@ -76,9 +76,8 @@ export function newServer(data) {
     const path = `${process.cwd()}/data/servers/${serverNum}`;
     fs.mkdirSync(path);
 
-    servers.push(new Server(serverNum, serverData[serverNum]));
+    servers.push(new Server(serverNum, serverData[serverNum], "downloading"));
     const currentServer = servers[serverNum];
-    currentServer.setServerStatus("downloading");
 
     let propertiesData = `motd=${data.name}\nquery.port=${data.port}\ndifficulty=${data.difficulty}\nserver-port=${data.port}\nspawn-protection=0\nview-distance=32\nsimulation-distance=32`;
     if (data.seed != "") {

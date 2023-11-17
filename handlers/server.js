@@ -8,19 +8,21 @@ import EventHandler from "./server/eventHandler.js";
 import { updateServerDirSize } from "./usageHandler.js";
 
 export default class Server {
-  constructor(serverNum, data) {
+  constructor(serverNum, data, status = "offline") {
     this.serverNum = serverNum;
     this.data = data;
     this.path = process.cwd() + "/data/servers/" + serverNum;
+    this.status = status;
     this.#logger = new Logger(["serverHandler", `server ${serverNum}`]);
     this.fileHandler = new FileHandler(this);
-    this.settingsHandler = new SettingsHandler(this);
     this.playerHandler = new PlayerHandler(this);
     this.eventHandler = new EventHandler(this);
+    this.settingsHandler = new SettingsHandler(this);
+    if (this.status !== "downloading") this.settingsHandler.init();
   }
 
   #logger;
-  status = "offline";
+  status;
   consoleLog = "";
   server = null;
   path;
@@ -70,7 +72,11 @@ export default class Server {
     }
   }
   setServerStatus(newStatus) {
-    if (this.status == "downloading" && newStatus != "offline") return;
+    if (this.status == "downloading") {
+      if (newStatus == "offline") {
+        this.settingsHandler.init();
+      } else return;
+    }
 
     this.status = newStatus;
     listener.emit("_statusUpdate" + this.serverNum, newStatus);

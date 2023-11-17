@@ -11,8 +11,6 @@ export default class SettingsHandler {
       `server ${server.serverNum}`,
       "settingsHandler",
     ]);
-    this.getSettings();
-    this.setEditableSettings();
 
     server.on("updateSettings", (data) => {
       for (const property in data) {
@@ -20,6 +18,11 @@ export default class SettingsHandler {
       }
       this.saveSettings();
     });
+  }
+
+  init() {
+    this.getSettings();
+    this.setEditableSettings();
   }
 
   getSettings() {
