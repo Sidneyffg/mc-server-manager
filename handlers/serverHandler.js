@@ -62,6 +62,7 @@ export function newServer(data) {
     serverData.push({
       ...data,
       creationDate: Date.now(),
+      dirSize: 0,
     });
     saveServerData();
 
@@ -101,7 +102,10 @@ export function newServer(data) {
           logger.error("Failed to create server...");
           return;
         }
+
+        await currentServer.shutdownHandler.stopServer();
         resolve();
+        currentServer.updateDirSize();
       });
     });
   });

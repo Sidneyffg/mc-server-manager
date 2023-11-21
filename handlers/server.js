@@ -7,7 +7,7 @@ import PlayerHandler from "./server/playerHandler.js";
 import EventHandler from "./server/eventHandler.js";
 import BackupHandler from "./server/backupHandler.js";
 import ShutdownHandler from "./server/shutdownHandler.js";
-import { updateServerDirSize } from "./usageHandler.js";
+import { getServerDirSize } from "./usageHandler.js";
 
 export default class Server {
   constructor(serverNum, data, status = "offline") {
@@ -61,11 +61,15 @@ export default class Server {
         this.consoleLog += data;
       });
 
-      this.dirSizeIntervalId = setInterval(async () => {
-        await updateServerDirSize(this.serverNum);
-        this.#logger.info("Updated server dir size");
-      }, 600000);
+      this.dirSizeIntervalId = setInterval(() => this.updateDirSize(), 6e5); // every 10 minutes
     });
+  }
+
+  async updateDirSize() {
+    const dirSize = await getServerDirSize(this.serverNum);
+    this.data.dirSize = dirSize;
+    listener.emit("_serverDirSizeUpdate" + this.serverNum, dirSize);
+    this.#logger.info("Updated server dir size");
   }
 
   setServerStatus(newStatus) {
@@ -82,7 +86,7 @@ export default class Server {
   }
 
   write(msg) {
-    if (this.status !== "online") {
+    if (!["online", "downloading"].includes(this.status)) {
       this.#logger.error(
         "Tried to write in server console while server wasn't online..."
       );

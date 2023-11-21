@@ -2,7 +2,6 @@ import osu from "node-os-utils";
 import { emit } from "./listener.js";
 import path from "path";
 import fs from "fs";
-import { cwd } from "process";
 
 const lastCpuUsage = new Array(3);
 fillLastCpuUsage();
@@ -39,7 +38,7 @@ const getAllFiles = function (dirPath, arrayOfFiles) {
     } else {
       arrayOfFiles.push(path.join(dirPath, file));
     }
-  }); 
+  });
 
   return arrayOfFiles;
 };
@@ -72,11 +71,11 @@ const getTotalSize = function (directoryPath) {
   return convertBytes(totalSize);
 };
 
-export async function updateServerDirSize(serverNum) {
+export async function getServerDirSize(serverNum) {
   const serverDirSize = getTotalSize(
-    path.join(cwd(), "data/servers/" + serverNum)
+    path.join(process.cwd(), "data/servers/" + serverNum)
   );
-  emit("_serverDirSizeUpdate" + serverNum, serverDirSize);
+  return serverDirSize;
 }
 
 async function fillLastCpuUsage() {

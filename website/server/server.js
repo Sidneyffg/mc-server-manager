@@ -97,7 +97,6 @@ function editServerBtns(showActive, disabled) {
   activeServerBtns.style.display = showActive ? "flex" : "none";
   inActiveServerBtns.style.display = showActive ? "none" : "flex";
 
-  console.log((showActive ? activeServerBtns : inActiveServerBtns).children);
 
   Array.from(
     (showActive ? activeServerBtns : inActiveServerBtns).children
