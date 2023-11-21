@@ -4,7 +4,7 @@ import * as versionHandler from "../versionHandler.js";
 
 export default class SettingsHandler {
   constructor(server) {
-    this.server = server;
+    this.#server = server;
     this.fileHandler = server.fileHandler;
     this.#logger = new Logger([
       "serverHandler",
@@ -65,16 +65,16 @@ export default class SettingsHandler {
   }
 
   saveSettings() {
-    listener.emit("_settingsUpdate" + this.server.serverNum, this.settings);
+    listener.emit("_settingsUpdate" + this.#server.serverNum, this.settings);
     this.#logger.info("Updated server properties");
     let properties = "";
     for (const setting in this.settings) {
       const value = this.settings[setting].value;
       properties += `${setting}=${value}\r\n`;
     }
-    if (this.server.status !== "offline") {
+    if (this.#server.status !== "offline") {
       this.#logger.error("Added offline todo item...");
-      this.server.eventHandler.addOfflineTodoItem({
+      this.#server.eventHandler.addOfflineTodoItem({
         action: "saveServerProperties",
         value: properties,
       });
@@ -83,4 +83,5 @@ export default class SettingsHandler {
     this.fileHandler.writeFile("properties", properties);
   }
   #logger;
+  #server;
 }

@@ -1,2 +1,3 @@
 /data/servers/*
+/data/backups/*
 /node_modules

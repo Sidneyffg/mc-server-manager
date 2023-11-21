@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Backups</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/website/backups/backups.js" defer></script>
+    <link rel="stylesheet" href="/website/styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <nav>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        height="24"
+        viewBox="0 -960 960 960"
+        width="24"
+        fill="white"
+        onclick="window.location.href='/servers'"
+      >
+        <path d="M400-80 0-480l400-400 71 71-329 329 329 329-71 71Z" />
+      </svg>
+      <div id="nav-title" onclick="window.location.href='./'">
+        <h1><%= serverData.data.name %></h1>
+        <p><%= serverIp %>:<%= serverData.data.port %></p>
+      </div>
+      <div id="nav-pages">
+        <a href="./settings">settings</a>
+        <a href="./players">players</a>
+        <a href="./console">console</a>
+        <a href="./plugins">plugins</a>
+        <a href="./backups">backups</a>
+      </div>
+    </nav>
+    <main id="server-backups-main">
+      <div id="server-backups-list">
+        <div>
+          <h3>Backups</h3>
+          <button>Create backup</button>
+        </div>
+      </div>
+      <div>
+        <div id="automatic-backups-header">
+          <h2>Automatic backups</h2>
+          <label class="switch">
+            <input type="checkbox" id="automatic-backups-switch" />
+            <span class="slider-round"></span>
+          </label>
+        </div>
+        <div id="automatic-backups-content" style="display: none">
+          <p>New backup every</p>
+          <input type="number" class="small-number-inp" />
+          <p>hours.</p>
+          <br />
+          <p>Delete backup after</p>
+          <input type="number" class="small-number-inp" />
+          <p>hours.</p>
+        </div>
+      </div>
+    </main>
+    <div id="edit-popup" style="display: none">
+      <p id="edit-popup-header">Unsaved changes</p>
+      <div>
+        <button onclick="discardChanges()" id="edit-popup-discard-btn">
+          Discard
+        </button>
+        <button onclick="saveChanges(false)" id="edit-popup-save-btn">
+          Save
+        </button>
+      </div>
+    </div>
+  </body>
+</html>

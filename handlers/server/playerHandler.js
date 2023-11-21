@@ -3,13 +3,13 @@ import Logger from "../consoleHandler.js";
 
 export default class PlayerHandler {
   constructor(server) {
-    this.server = server;
+    this.#server = server;
     this.#logger = new Logger([
       "serverHandler",
       "server " + server.serverNum,
       "playerhandler",
     ]);
-    this.fileHandler = this.server.fileHandler;
+    this.fileHandler = this.#server.fileHandler;
 
     this.#updateAllPlayergroups();
 
@@ -78,7 +78,7 @@ export default class PlayerHandler {
     const allPlayers = this.fileHandler.readFile("usercache");
 
     this.allPlayers = allPlayers.map((e) => e.name);
-    listener.emit("_allPlayersUpdate" + this.server.serverNum, this.allPlayers);
+    listener.emit("_allPlayersUpdate" + this.#server.serverNum, this.allPlayers);
   }
 
   #updateWhitelistedPlayers() {
@@ -86,7 +86,7 @@ export default class PlayerHandler {
 
     this.whitelistedPlayers = whitelistedPlayers.map((e) => e.name);
     listener.emit(
-      "_whitelistedPlayersUpdate" + this.server.serverNum,
+      "_whitelistedPlayersUpdate" + this.#server.serverNum,
       this.whitelistedPlayers
     );
   }
@@ -96,22 +96,23 @@ export default class PlayerHandler {
 
     this.oppedPlayers = oppedPlayers.map((e) => e.name);
     listener.emit(
-      "_oppedPlayersUpdate" + this.server.serverNum,
+      "_oppedPlayersUpdate" + this.#server.serverNum,
       this.oppedPlayers
     );
   }
 
   addPlayerToWhitelist(name) {
     if (this.whitelistedPlayers.includes(name)) return false;
-    this.server.server.stdin.write(`whitelist add ${name}\n`);
+    this.#server.write(`whitelist add ${name}`);
     return true;
   }
 
   makePlayerOperator(name) {
     if (this.oppedPlayers.includes(name)) return false;
-    this.server.server.stdin.write(`op ${name}\n`);
+    this.#server.write(`op ${name}`);
     return true;
   }
 
   #logger;
+  #server;
 }

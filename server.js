@@ -11,8 +11,6 @@ import * as versionHandler from "./handlers/versionHandler.js";
 import * as listener from "./handlers/listener.js";
 import Logger from "./handlers/consoleHandler.js";
 const logger = new Logger(["webserver"]);
-import * as usageHandler from "./handlers/usageHandler.js";
-import { callbackify } from "util";
 
 app.set("view engine", "ejs");
 const websitePath = process.cwd() + "/website";
@@ -38,7 +36,7 @@ app.get("/", (req, res) => {
 app.get("/servers", (req, res) => {
   let serverData = [];
   for (let i = 0; i < serverHandler.totalServers; i++) {
-    serverData.push(serverHandler.getData(i));
+    serverData.push(serverHandler.get(i));
   }
   res.render(websitePath + "/index.ejs", {
     versions: versionHandler.allVersions,
@@ -59,13 +57,12 @@ app.get("/servers/*/*", (req, res) => {
     return;
   }
 
-  if (!["players", "settings"].includes(pageType)) {
+  if (!["players", "settings", "backups"].includes(pageType)) {
     res.redirect("/servers/" + serverNum);
     return;
   }
   res.render(websitePath + `/${pageType}/${pageType}.ejs`, {
-    serverData: serverHandler.getData(serverNum),
-    serverNum,
+    serverData: serverHandler.get(serverNum),
     serverIp: serverHandler.ip,
   });
 });
@@ -82,8 +79,7 @@ app.get("/servers/*", (req, res) => {
     return;
   }
   res.render(websitePath + "/server/server.ejs", {
-    serverData: serverHandler.getData(serverNum),
-    serverNum,
+    serverData: serverHandler.get(serverNum),
     serverIp: serverHandler.ip,
   });
 });
@@ -103,19 +99,26 @@ io.on("connection", (socket) => {
   listener.pipe(socket, "_");
 
   socket.on("startServer", (serverNum) => {
-    if (serverHandler.getData(serverNum).status != "offline") return;
+    if (serverHandler.get(serverNum).status != "offline") return;
     serverHandler.start(serverNum).catch(() => {
       socket.emit("startError", "data");
     });
   });
 
   socket.on("stopServer", (serverNum) => {
-    if (serverHandler.getData(serverNum).status != "online") return;
+    if (serverHandler.get(serverNum).status != "online") return;
     serverHandler.stop(serverNum);
   });
 
+  socket.on("stopServerIn", (serverNum, sec) => {
+    if (serverHandler.get(serverNum).status != "online") return;
+
+    const server = serverHandler.get(serverNum);
+    server.shutdownHandler.stopServerIn(sec);
+  });
+
   socket.on("restartServer", async (serverNum) => {
-    if (serverHandler.getData(serverNum).status != "online") return;
+    if (serverHandler.get(serverNum).status != "online") return;
     await serverHandler.stop(serverNum);
     serverHandler.start(serverNum).catch(() => {
       socket.emit("startError", "data");
@@ -123,7 +126,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("addPlayerToWhitelist", (serverNum, playerName, callback) => {
-    const serverData = serverHandler.getData(serverNum);
+    const serverData = serverHandler.get(serverNum);
     if (serverData.status != "online") {
       serverHandler.addOnlineTodoItem(serverNum, {
         action: "addPlayerToWhitelist",
@@ -136,7 +139,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("makePlayerOperator", (serverNum, playerName, callback) => {
-    const serverData = serverHandler.getData(serverNum);
+    const serverData = serverHandler.get(serverNum);
     if (serverData.status != "online") {
       serverHandler.addOnlineTodoItem(serverNum, {
         action: "makePlayerOperator",
@@ -151,7 +154,7 @@ io.on("connection", (socket) => {
   socket.on("updateSettings", async (serverNum, newSettings, force) => {
     serverHandler.emitInServer(serverNum, "updateSettings", newSettings);
     if (force) {
-      if (serverHandler.getData(serverNum).status != "online") return;
+      if (serverHandler.get(serverNum).status != "online") return;
       await serverHandler.stop(serverNum);
       serverHandler.start(serverNum).catch(() => {
         socket.emit("startError", "data");

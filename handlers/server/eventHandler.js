@@ -4,7 +4,7 @@ import TodoItem from "../todoItem.js";
 
 export default class EventHandler {
   constructor(server) {
-    this.server = server;
+    this.#server = server;
     this.#logger = new Logger([
       "serverManager",
       "server " + server.serverNum,
@@ -13,7 +13,7 @@ export default class EventHandler {
 
     this.data = server.data.eventHandler;
     if (!this.data) {
-      this.server.data.eventHandler = {
+      this.#server.data.eventHandler = {
         todo: {
           online: [],
           offline: [],
@@ -41,7 +41,7 @@ export default class EventHandler {
           this.data.todo.offline.forEach((todoItem) => {
             switch (todoItem.action) {
               case "saveServerProperties":
-                this.server.fileHandler.writeFile("properties", todoItem.value);
+                this.#server.fileHandler.writeFile("properties", todoItem.value);
                 break;
             }
           });
@@ -52,47 +52,47 @@ export default class EventHandler {
   }
 
   handle(data, resolve) {
-    listener.emit("_consoleUpdate" + this.server.serverNum, data);
+    listener.emit("_consoleUpdate" + this.#server.serverNum, data);
     const inc = data.includes.bind(data);
 
     if (inc("Timings Reset")) {
-      this.server.setServerStatus("online");
+      this.#server.setServerStatus("online");
       resolve();
     }
     if (inc("UUID of player ")) {
       const name = data.split(" ")[5];
-      this.server.emit("playerConnected", name);
+      this.#server.emit("playerConnected", name);
     }
     if (inc(" lost connection: ")) {
       const name = data.split(" ")[2];
-      this.server.emit("playerDisconnected", name);
+      this.#server.emit("playerDisconnected", name);
     }
     if (inc(" a server operator")) {
       const name = data.split(" ")[4];
       if (inc(" no longer ")) {
-        this.server.emit("playerDeOpped", name);
+        this.#server.emit("playerDeOpped", name);
       } else {
-        this.server.emit("playerOpped", name);
+        this.#server.emit("playerOpped", name);
       }
     }
 
     if (inc("to the whitelist")) {
       const name = data.split(" ")[4];
-      this.server.emit("playerAddedToWhitelist", name);
+      this.#server.emit("playerAddedToWhitelist", name);
     }
 
     if (inc("from the whitelist")) {
       const name = data.split(" ")[4];
-      this.server.emit("playerRemovedFromWhitelist", name);
+      this.#server.emit("playerRemovedFromWhitelist", name);
     }
 
     if (inc("Whitelist is now turned ")) {
-      this.server.emit("whitelistStatusUpdate", inc(" on"));
+      this.#server.emit("whitelistStatusUpdate", inc(" on"));
     }
   }
 
   handleErr(err) {
-    listener.emit("_consoleUpdate" + this.server.serverNum, err);
+    listener.emit("_consoleUpdate" + this.#server.serverNum, err);
     this.#logger.error(err);
   }
 
@@ -108,4 +108,5 @@ export default class EventHandler {
   }
 
   #logger;
+  #server;
 }

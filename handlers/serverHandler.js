@@ -38,27 +38,21 @@ export function start(serverNum) {
   });
 }
 export async function stop(serverNum) {
-  await servers[serverNum].stop();
+  await servers[serverNum].shutdownHandler.stopServer();
   saveServerData();
 }
 
-export function getData(serverNum) {
-  const s = servers[serverNum];
-  return {
-    status: s.status,
-    consoleLog: s.consoleLog,
-    playerHandler: {
-      onlinePlayers: s.playerHandler.onlinePlayers,
-      allPlayers: s.playerHandler.allPlayers,
-      whitelistedPlayers: s.playerHandler.whitelistedPlayers,
-      oppedPlayers: s.playerHandler.oppedPlayers,
-    },
-    settingsHandler: {
-      settings: s.settingsHandler.settings,
-      editableSettings: s.settingsHandler.editableSettings,
-    },
-    ...serverData[serverNum],
-  };
+export async function stopIn(serverNum, sec, callback) {
+  await servers[serverNum].shutdownHandler.stopServerIn(sec, callback);
+  saveServerData();
+}
+
+export function createBackup(serverNum) {
+  servers[serverNum].backupHandler.createBackup();
+}
+
+export function get(serverNum) {
+  return servers[serverNum];
 }
 
 export function newServer(data) {
@@ -107,7 +101,6 @@ export function newServer(data) {
           logger.error("Failed to create server...");
           return;
         }
-        await currentServer.stop();
         resolve();
       });
     });
@@ -137,8 +130,13 @@ export function makePlayerOperator(serverNum, name) {
   return servers[serverNum].playerHandler.makePlayerOperator(name);
 }
 
-export function addTodoItem(serverNum, data) {
-  servers[serverNum].eventHandler.addTodoItem(data);
+export function addOnlineTodoItem(serverNum, data) {
+  servers[serverNum].eventHandler.addOnlineTodoItem(data);
+  saveServerData();
+}
+
+export function addOfflineTodoItem(serverNum, data) {
+  servers[serverNum].eventHandler.addOfflineTodoItem(data);
   saveServerData();
 }
 

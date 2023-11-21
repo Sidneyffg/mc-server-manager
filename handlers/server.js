@@ -5,6 +5,8 @@ import FileHandler from "./server/fileHandler.js";
 import SettingsHandler from "./server/settingsHandler.js";
 import PlayerHandler from "./server/playerHandler.js";
 import EventHandler from "./server/eventHandler.js";
+import BackupHandler from "./server/backupHandler.js";
+import ShutdownHandler from "./server/shutdownHandler.js";
 import { updateServerDirSize } from "./usageHandler.js";
 
 export default class Server {
@@ -18,6 +20,8 @@ export default class Server {
     this.playerHandler = new PlayerHandler(this);
     this.eventHandler = new EventHandler(this);
     this.settingsHandler = new SettingsHandler(this);
+    this.backupHandler = new BackupHandler(this);
+    this.shutdownHandler = new ShutdownHandler(this);
     if (this.status !== "downloading") this.settingsHandler.init();
   }
 
@@ -63,14 +67,7 @@ export default class Server {
       }, 600000);
     });
   }
-  async stop() {
-    this.setServerStatus("stopping");
-    this.server.stdin.write("stop\n");
-    while (true) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      if (this.status == "offline") return;
-    }
-  }
+
   setServerStatus(newStatus) {
     if (this.status == "downloading") {
       if (newStatus == "offline") {
@@ -82,6 +79,16 @@ export default class Server {
     listener.emit("_statusUpdate" + this.serverNum, newStatus);
     this.emit("statusUpdate", newStatus);
     this.#logger.info("Server status is " + newStatus);
+  }
+
+  write(msg) {
+    if (this.status !== "online") {
+      this.#logger.error(
+        "Tried to write in server console while server wasn't online..."
+      );
+      return;
+    }
+    this.server.stdin.write(msg + "\n");
   }
 
   #listeners = [];

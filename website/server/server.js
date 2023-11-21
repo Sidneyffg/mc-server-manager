@@ -103,9 +103,78 @@ function editServerBtns(showActive, disabled) {
     (showActive ? activeServerBtns : inActiveServerBtns).children
   ).forEach((e) => {
     e.disabled = disabled;
+    if (disabled) {
+      e.classList.add("disabled");
+    } else {
+      e.classList.remove("disabled");
+    }
   });
 }
 
 function changeServerStatus(action) {
   socket.emit(action + "Server", currentServer);
+  document.getElementById("overview-stop-checkbox").checked = false;
+}
+
+socket.on("serverStoppingInUpdate" + currentServer, (sec) => {
+  if (sec == -1) {
+    hideStoppingInInfo();
+    return;
+  }
+  showStoppingInInfo(sec);
+});
+
+const stoppingInInfo = document.getElementById("stopping-in-info");
+const stoppingInInfoP = document.getElementById("stopping-in-info-p");
+let stoppingInInfoIntervalId;
+function showStoppingInInfo(sec) {
+  hideStoppingInInfo();
+  stoppingInInfoIntervalId = setInterval(decreaseStoppingInInfo, 1000);
+  stoppingInInfoP.innerHTML = sec;
+  stoppingInInfo.style.display = "block";
+}
+
+function decreaseStoppingInInfo() {
+  const value = parseInt(stoppingInInfoP.innerHTML) - 1;
+  if (value == 0) {
+    hideStoppingInInfo();
+    return;
+  }
+  stoppingInInfoP.innerHTML = value;
+}
+
+function hideStoppingInInfo() {
+  stoppingInInfo.style.display = "none";
+  if (stoppingInInfoIntervalId) clearInterval(stoppingInInfoIntervalId);
+}
+
+stoppingInInfoInit();
+function stoppingInInfoInit() {
+  const value = parseInt(stoppingInInfoP.innerHTML);
+  if (value && value > 0) showStoppingInInfo(value);
+}
+
+const stopServerInPopup = document.getElementById("stop-server-in-popup");
+const stopServerInPopupInp = document.getElementById(
+  "stop-server-in-popup-inp"
+);
+function openStopServerInPopup() {
+  document.getElementById("overview-stop-checkbox").checked = false;
+  stopServerInPopupInp.value = "";
+  stopServerInPopup.style.display = "block";
+}
+
+function closeStopServerInPopup() {
+  stopServerInPopup.style.display = "none";
+}
+
+function stopServerIn() {
+  const min = stopServerInPopupInp.value;
+
+  if (parseFloat(min).toString() != min || min <= 0) return;
+
+  closeStopServerInPopup();
+
+  const sec = Math.round(min * 60);
+  socket.emit("stopServerIn", currentServer, sec);
 }

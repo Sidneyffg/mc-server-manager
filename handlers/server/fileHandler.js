@@ -8,14 +8,14 @@ export default class FileHandler {
       `server ${server.serverNum}`,
       "fileHandler",
     ]);
-    this.server = server;
+    this.#server = server;
   }
 
   #getFile(fileName) {
     return files.find((e) => e.file == fileName);
   }
   #getPath(file) {
-    return this.server.path + file.path;
+    return this.#server.path + file.path;
   }
 
   readFile(fileName) {
@@ -68,6 +68,7 @@ export default class FileHandler {
   }
 
   #logger;
+  #server;
 }
 
 const files = [

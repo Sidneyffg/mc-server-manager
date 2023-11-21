@@ -24,8 +24,8 @@
           src="https://img.freepik.com/free-photo/painting-mountain-lake-with-mountain-background_188544-9126.jpg?q=10&h=200"
         />
         <div class="server-data">
-          <h2><%= serverData[i].name %></h2>
-          <p><%= serverData[i].type %> <%= serverData[i].version %></p>
+          <h2><%= serverData[i].data.name %></h2>
+          <p><%= serverData[i].data.type %> <%= serverData[i].data.version %></p>
         </div>
         <div class="server-status">
           <div class="server-status-color" style="background-color:<%= statusToColor(serverData[i].status) %>;"></div>
