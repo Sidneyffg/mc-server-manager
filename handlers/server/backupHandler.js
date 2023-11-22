@@ -5,7 +5,7 @@ export default class BackupHandler {
   constructor(server) {
     this.#server = server;
     this.#logger = new Logger([
-      "serverManager",
+      "serverHandler",
       "server " + server.serverNum,
       "eventHandler",
     ]);

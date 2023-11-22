@@ -99,64 +99,67 @@ io.on("connection", (socket) => {
   listener.pipe(socket, "_");
 
   socket.on("startServer", (serverNum) => {
-    if (serverHandler.get(serverNum).status != "offline") return;
-    serverHandler.start(serverNum).catch(() => {
+    const server = serverHandler.get(serverNum);
+    if (server.status != "offline") return;
+    server.start().catch(() => {
       socket.emit("startError", "data");
     });
   });
 
   socket.on("stopServer", (serverNum) => {
-    if (serverHandler.get(serverNum).status != "online") return;
-    serverHandler.stop(serverNum);
+    const server = serverHandler.get(serverNum);
+    if (server.status != "online") return;
+    server.shutdownHandler.stopServer();
   });
 
   socket.on("stopServerIn", (serverNum, sec) => {
-    if (serverHandler.get(serverNum).status != "online") return;
-
     const server = serverHandler.get(serverNum);
+    if (server.status != "online") return;
     server.shutdownHandler.stopServerIn(sec);
   });
 
   socket.on("restartServer", async (serverNum) => {
-    if (serverHandler.get(serverNum).status != "online") return;
-    await serverHandler.stop(serverNum);
-    serverHandler.start(serverNum).catch(() => {
+    const server = serverHandler.get(serverNum);
+    if (server.status != "online") return;
+    await server.shutdownHandler.stopServer();
+    server.start().catch(() => {
       socket.emit("startError", "data");
     });
   });
 
   socket.on("addPlayerToWhitelist", (serverNum, playerName, callback) => {
-    const serverData = serverHandler.get(serverNum);
-    if (serverData.status != "online") {
-      serverHandler.addOnlineTodoItem(serverNum, {
+    const server = serverHandler.get(serverNum);
+    if (server.status != "online") {
+      server.eventHandler.addOnlineTodoItem({
         action: "addPlayerToWhitelist",
         value: playerName,
       });
       callback(true);
       return;
     }
-    callback(serverHandler.addPlayerToWhitelist(serverNum, playerName));
+    callback(server.playerHandler.addPlayerToWhitelist(playerName));
   });
 
   socket.on("makePlayerOperator", (serverNum, playerName, callback) => {
-    const serverData = serverHandler.get(serverNum);
-    if (serverData.status != "online") {
-      serverHandler.addOnlineTodoItem(serverNum, {
+    const server = serverHandler.get(serverNum);
+    if (server.status != "online") {
+      server.eventHandler.addOnlineTodoItem({
         action: "makePlayerOperator",
         value: playerName,
       });
       callback(true);
       return;
     }
-    callback(serverHandler.makePlayerOperator(serverNum, playerName));
+    callback(server.playerHandler.makePlayerOperator(playerName));
   });
 
   socket.on("updateSettings", async (serverNum, newSettings, force) => {
-    serverHandler.emitInServer(serverNum, "updateSettings", newSettings);
+    const server = serverHandler.get(serverNum);
+    server.emit("updateSettings", newSettings);
     if (force) {
-      if (serverHandler.get(serverNum).status != "online") return;
-      await serverHandler.stop(serverNum);
-      serverHandler.start(serverNum).catch(() => {
+      if (server.status != "online") return;
+      await server.shutdownHandler.stopServer();
+      server.start().catch(() => {
         socket.emit("startError", "data");
       });
     }
@@ -167,9 +170,9 @@ server.listen(3000, () => {
   logger.info("Listening on *:3000");
 });
 
-process.on("beforeExit", (code) => {
+/*process.on("beforeExit", (code) => {
   console.log("jaja");
   serverHandler.stopAllServers(() => {
     process.exit(code);
   });
-});
+});*/

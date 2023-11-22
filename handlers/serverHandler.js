@@ -20,9 +20,12 @@ export async function init() {
   logger.info("Server ip: " + ip);
 
   totalServers = serverData.length;
-  for (let i = 0; i < serverData.length; i++)
+  for (let i = 0; i < serverData.length; i++) {
     servers.push(new Server(i, serverData[i]));
+    saveOnExit(servers[i]);
+  }
 
+  setTimeout(() => saveServerData(), 6e5); //every ten minutes
   logger.info("Initialized successfully");
 }
 
@@ -36,19 +39,6 @@ export function start(serverNum) {
     }
     resolve();
   });
-}
-export async function stop(serverNum) {
-  await servers[serverNum].shutdownHandler.stopServer();
-  saveServerData();
-}
-
-export async function stopIn(serverNum, sec, callback) {
-  await servers[serverNum].shutdownHandler.stopServerIn(sec, callback);
-  saveServerData();
-}
-
-export function createBackup(serverNum) {
-  servers[serverNum].backupHandler.createBackup();
 }
 
 export function get(serverNum) {
@@ -64,7 +54,6 @@ export function newServer(data) {
       creationDate: Date.now(),
       dirSize: 0,
     });
-    saveServerData();
 
     const serverNum = serverData.length - 1;
 
@@ -105,13 +94,22 @@ export function newServer(data) {
 
         await currentServer.shutdownHandler.stopServer();
         resolve();
-        currentServer.updateDirSize();
+        
+        await currentServer.updateDirSize();
+        saveServerData();
+        saveOnExit(currentServer);
       });
     });
   });
 }
 
-export function stopAllServers(callback) {
+function saveOnExit(server) {
+  server.on("statusUpdate", (newStatus) => {
+    if (newStatus == "offline") saveServerData();
+  });
+}
+
+/*export function stopAllServers(callback) {
   let count = 0;
   for (let i = 0; i < totalServers; i++) {
     if (getData(i).status == "online") {
@@ -124,29 +122,7 @@ export function stopAllServers(callback) {
     }
   }
   if (totalServers == count) callback();
-}
-
-export function addPlayerToWhitelist(serverNum, name) {
-  return servers[serverNum].playerHandler.addPlayerToWhitelist(name);
-}
-
-export function makePlayerOperator(serverNum, name) {
-  return servers[serverNum].playerHandler.makePlayerOperator(name);
-}
-
-export function addOnlineTodoItem(serverNum, data) {
-  servers[serverNum].eventHandler.addOnlineTodoItem(data);
-  saveServerData();
-}
-
-export function addOfflineTodoItem(serverNum, data) {
-  servers[serverNum].eventHandler.addOfflineTodoItem(data);
-  saveServerData();
-}
-
-export function emitInServer(serverNum, event, data) {
-  servers[serverNum].emit(event, data);
-}
+}*/
 
 async function saveServerData() {
   fs.writeFileSync(
