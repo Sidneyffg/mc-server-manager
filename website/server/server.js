@@ -1,57 +1,8 @@
-const socket = io();
-
-const currentServer = window.location.pathname.split("/")[2];
-setServerStatus(document.body.dataset.serverstatus);
 const serverConsole = document.getElementById("server-console");
 const parent = serverConsole.parentElement;
 parent.scrollTop = parent.scrollHeight;
 
 let currentType = "INFO";
-
-socket.on("consoleUpdate" + currentServer, (data) => {
-  let scrollDown =
-    parent.scrollTop + parent.clientHeight == parent.scrollHeight;
-
-  let type = /\[[0-9]{2}\:[0-9]{2}\:[0-9]{2} ([A-Z]{4,5})|\]:/m.exec(data);
-  if (type) currentType = type[1];
-
-  serverConsole.innerHTML += `<span class="span-color-${currentType}">${data.replaceAll(
-    "\n",
-    "<br>"
-  )}</span>`;
-  if (scrollDown) {
-    parent.scrollTop = parent.scrollHeight;
-  }
-});
-
-socket.on("onlinePlayersUpdate" + currentServer, (onlinePlayers) => {
-  const playersDiv = document.getElementById("players-div");
-  let playersHtml = "";
-  onlinePlayers.forEach((player) => {
-    playersHtml += `
-    <div>
-    <img
-      src="https://mc-heads.net/avatar/${player}/40"
-    />
-    <div>
-      <p>USERNAME</p>
-      <p>${player}</p>
-    </div>
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      height="24"
-      viewBox="0 -960 960 960"
-      width="24"
-    >
-      <path
-        fill="white"
-        d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z"
-      />
-    </svg>
-  </div>`;
-  });
-  playersDiv.innerHTML = playersHtml;
-});
 
 const usageCpu = document.getElementById("usage-cpu"),
   usageMem = document.getElementById("usage-mem"),
@@ -62,21 +13,75 @@ socket.on("usageUpdate", (usage) => {
   usageMem.innerHTML = Math.round(usage.memUsage.usedMemMb / 10) / 100 + "GB";
 });
 
-socket.on("serverDirSizeUpdate" + currentServer, (dirSize) => {
-  usageStorage.innerHTML = dirSize;
-});
+let stopMenu;
 
-socket.on("statusUpdate" + currentServer, (newStatus) => {
-  setServerStatus(newStatus);
-  if (newStatus == "starting") {
-    serverConsole.innerHTML = "";
-  }
-});
+std.server.onStatusUpdate(() => serverStatusUpdate());
+function run() {
+  serverStatusUpdate();
+  stopMenu = new StopMenu();
+  socket.on("serverDirSizeUpdate" + std.server.num, (dirSize) => {
+    usageStorage.innerHTML = dirSize;
+  });
+  socket.on("serverStoppingInUpdate" + std.server.num, (sec) => {
+    if (sec == -1) {
+      hideStoppingInInfo();
+      return;
+    }
+    showStoppingInInfo(sec);
+  });
+  socket.on("consoleUpdate" + std.server.num, (data) => {
+    console.log("received consoleUpdate");
+    let scrollDown =
+      parent.scrollTop + parent.clientHeight == parent.scrollHeight;
 
-function setServerStatus(status) {
-  switch (status) {
+    let type = /\[[0-9]{2}\:[0-9]{2}\:[0-9]{2} ([A-Z]{4,5})|\]:/m.exec(data);
+    if (type) currentType = type[1];
+
+    serverConsole.innerHTML += `<span class="span-color-${currentType}">${data.replaceAll(
+      "\n",
+      "<br>"
+    )}</span>`;
+    if (scrollDown) {
+      parent.scrollTop = parent.scrollHeight;
+    }
+  });
+
+  socket.on("onlinePlayersUpdate" + std.server.num, (onlinePlayers) => {
+    const playersDiv = document.getElementById("players-div");
+    let playersHtml = "";
+    onlinePlayers.forEach((player) => {
+      playersHtml += `
+      <div>
+      <img
+        src="https://mc-heads.net/avatar/${player}/40"
+      />
+      <div>
+        <p>USERNAME</p>
+        <p>${player}</p>
+      </div>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        height="24"
+        viewBox="0 -960 960 960"
+        width="24"
+      >
+        <path
+          fill="white"
+          d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z"
+        />
+      </svg>
+    </div>`;
+    });
+    playersDiv.innerHTML = playersHtml;
+  });
+}
+function serverStatusUpdate() {
+  console.log(std.server.status);
+  switch (std.server.status) {
     case "starting":
       editServerBtns(false, true);
+      serverConsole.innerHTML = "";
+      console.log("console reset");
       break;
     case "online":
       editServerBtns(true, false);
@@ -97,7 +102,6 @@ function editServerBtns(showActive, disabled) {
   activeServerBtns.style.display = showActive ? "flex" : "none";
   inActiveServerBtns.style.display = showActive ? "none" : "flex";
 
-
   Array.from(
     (showActive ? activeServerBtns : inActiveServerBtns).children
   ).forEach((e) => {
@@ -109,20 +113,6 @@ function editServerBtns(showActive, disabled) {
     }
   });
 }
-
-function changeServerStatus(action) {
-  socket.emit(action + "Server", currentServer);
-  document.getElementById("overview-stop-checkbox").checked = false;
-}
-
-socket.on("serverStoppingInUpdate" + currentServer, (sec) => {
-  if (sec == -1) {
-    hideStoppingInInfo();
-    return;
-  }
-  showStoppingInInfo(sec);
-});
-
 const stoppingInInfo = document.getElementById("stopping-in-info");
 const stoppingInInfoP = document.getElementById("stopping-in-info-p");
 let stoppingInInfoIntervalId;
@@ -147,12 +137,6 @@ function hideStoppingInInfo() {
   if (stoppingInInfoIntervalId) clearInterval(stoppingInInfoIntervalId);
 }
 
-stoppingInInfoInit();
-function stoppingInInfoInit() {
-  const value = parseInt(stoppingInInfoP.innerHTML);
-  if (value && value > 0) showStoppingInInfo(value);
-}
-
 const stopServerInPopup = document.getElementById("stop-server-in-popup");
 const stopServerInPopupInp = document.getElementById(
   "stop-server-in-popup-inp"
@@ -175,5 +159,5 @@ function stopServerIn() {
   closeStopServerInPopup();
 
   const sec = Math.round(min * 60);
-  socket.emit("stopServerIn", currentServer, sec);
+  socket.emit("stopServerIn", std.server.num, sec);
 }

@@ -1,3 +1,4 @@
 /data/servers/*
 /data/backups/*
 /node_modules
+/data/serverData.json

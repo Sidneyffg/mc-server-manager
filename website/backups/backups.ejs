@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Backups</title>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/website/std.js"></script>
     <script src="/website/backups/backups.js" defer></script>
     <link rel="stylesheet" href="/website/styles.css" />
     <link
@@ -12,7 +13,7 @@
       rel="stylesheet"
     />
   </head>
-  <body>
+  <body data-serverstatus="<%= serverData.status %>">
     <nav>
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -40,24 +41,70 @@
       <div id="server-backups-list">
         <div>
           <h3>Backups</h3>
-          <button>Create backup</button>
+          <button onclick="createBackup()">Create backup</button>
         </div>
+        <% const year = (new Date()).getFullYear() %>
+        <% const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"] %>
+        <% serverData.data.backupHandler.backups.forEach((backup,idx) => { %>
+        <% const date = new Date(backup.timestamp) %>
+        <div class="backup-item">
+          <div>
+            <p><%= date.getDate() %> <%= months[date.getMonth()] %> <%= date.getFullYear() == year ? "" : date.getFullYear() %></p>
+            <% const minutes = "0" + date.getMinutes() %>
+            <p><%= `${date.getHours()}:${minutes.substring(minutes.length - 2,minutes.length)}`  %></p>
+          </div>
+          <input id="backup-item-checkbox-<%= idx %>" type="checkbox" style="display: none;">
+          <label for="backup-item-checkbox-<%= idx %>">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
+              <path fill="white"
+                  d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z" />
+            </svg>
+          </label>
+          <div class="list">
+            <button onclick="restoreBackup('<%= backup.id %>')">Restore</button>
+            <button onclick="deleteBackup('<%= backup.id %>')">Delete</button>
+          </div>
+        </div>
+        <% }) %>
       </div>
       <div>
         <div id="automatic-backups-header">
           <h2>Automatic backups</h2>
           <label class="switch">
-            <input type="checkbox" id="automatic-backups-switch" />
+            <% const timeBetweenAutomaticBackups = serverData.data.backupHandler.timeBetweenAutomaticBackups %>
+            <input
+              type="checkbox"
+              id="automatic-backups-switch"
+              onchange="change()"
+              <%= timeBetweenAutomaticBackups == -1 ? "" : "checked" %>
+            />
             <span class="slider-round"></span>
           </label>
         </div>
-        <div id="automatic-backups-content" style="display: none">
+        <div id="automatic-backups-content" style="display: <%= timeBetweenAutomaticBackups == -1 ? "none" : "flex" %>;">
           <p>New backup every</p>
-          <input type="number" class="small-number-inp" />
+          <input
+            type="number"
+            class="small-number-inp"
+            id="backup-time-inp"
+            min="1"
+            onkeyup="change()"
+            onchange="change()"
+            value="<%= timeBetweenAutomaticBackups == -1 ? "1" : timeBetweenAutomaticBackups / 36e5 %>"
+          />
           <p>hours.</p>
           <br />
           <p>Delete backup after</p>
-          <input type="number" class="small-number-inp" />
+          <% const deleteAutomaticBackupAfter = serverData.data.backupHandler.deleteAutomaticBackupAfter %>
+          <input
+            type="number"
+            class="small-number-inp"
+            id="delete-backup-time-inp"
+            min="1"
+            onkeyup="change()"
+            onchange="change()"
+            value="<%= deleteAutomaticBackupAfter == -1 ? "" : deleteAutomaticBackupAfter / 36e5 %>"
+          />
           <p>hours.</p>
         </div>
       </div>
@@ -68,7 +115,7 @@
         <button onclick="discardChanges()" id="edit-popup-discard-btn">
           Discard
         </button>
-        <button onclick="saveChanges(false)" id="edit-popup-save-btn">
+        <button onclick="saveChanges()" id="edit-popup-save-btn">
           Save
         </button>
       </div>

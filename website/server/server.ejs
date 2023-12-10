@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Server</title>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/website/std.js"></script>
     <script src="/website/server/server.js" defer></script>
     <link rel="stylesheet" href="/website/styles.css" />
     <link
@@ -40,19 +41,11 @@
     <main id="server-overview-page">
       <div id="overview-onn">
         <div id="active-server-btns" style="display: <%= serverData.status == "offline" || serverData.status == "stopping" ? "flex" : "none" %>;">
-          <input type="checkbox" id="overview-stop-checkbox" style="display: none;">
-          <label for="overview-stop-checkbox" id="overview-stop-btn">
-            <p>Stop</p>
-            <div id="overview-stop-btn-content">
-              <button onclick="changeServerStatus('stop')">Stop now</button>
-              <button onclick="openStopServerInPopup()">Stop in</button>
-            </div>
-          </label>
-
-          <button id="overview-restart-btn" onclick="changeServerStatus('restart')"><p>Restart</p></button>
+          <button id="overview-stop-btn" onclick="stopMenu.open()"><p>Stop</p></button>
+          <button id="overview-restart-btn" onclick="std.server.restart()"><p>Restart</p></button>
         </div>
         <div id="inactive-server-btns" style="display: <%= serverData.status == "offline" || serverData.status == "stopping" ? "none" : "flex" %>;">
-          <button id="overview-start-btn" onclick="changeServerStatus('start')"><p>Start</p></button>
+          <button id="overview-start-btn" onclick="std.server.start()"><p>Start</p></button>
         </div>
       </div>
       <div id="overview-players" class="players-container">
@@ -168,13 +161,5 @@
         <h3 id="usage-storage"><%= serverData.data.dirSize %></h3>
       </div>
     </main>
-    <div id="stop-server-in-popup" style="display: none;">
-      <div class="background" onclick="closeStopServerInPopup()"></div>
-      <div class="content">
-        <h1>Stop server in</h1>
-        <p>Stop server in <input type="number" class="small-number-inp" id="stop-server-in-popup-inp"> minutes</p>
-        <button onclick="stopServerIn()">Save</button>
-      </div>
-    </div>
   </body>
 </html>

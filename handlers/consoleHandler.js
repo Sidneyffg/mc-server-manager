@@ -15,6 +15,10 @@ export default class Logger {
     if (this.#typesToSkip.includes(type)) return;
     this.#log(this.#FgRed, "ERROR", text);
   }
+  exitWithError(text, code = -1) {
+    this.error(text);
+    process.exit(code);
+  }
 
   #log(color, type, text) {
     let logPrefix = "";

@@ -2,6 +2,7 @@ import fs from "fs";
 import https from "https";
 import Logger from "./consoleHandler.js";
 import Server from "./server.js";
+import * as listener from "./listener.js";
 
 const logger = new Logger(["serverHandler"]);
 const servers = [];
@@ -10,11 +11,7 @@ export let totalServers;
 export let ip;
 export async function init() {
   logger.info("Initializing...");
-  try {
-    serverData = JSON.parse(fs.readFileSync("./data/serverData.json"));
-  } catch (err) {
-    throw err;
-  }
+  initServerData();
 
   ip = await getIp();
   logger.info("Server ip: " + ip);
@@ -27,6 +24,23 @@ export async function init() {
 
   setTimeout(() => saveServerData(), 6e5); //every ten minutes
   logger.info("Initialized successfully");
+}
+
+function initServerData() {
+  if (fs.existsSync("./data/serverData.json")) {
+    try {
+      serverData = JSON.parse(fs.readFileSync("./data/serverData.json"));
+    } catch (err) {
+      logger.error("Failed to load serverData...");
+      logger.error(`-> ${err}`);
+      process.exit(1);
+    }
+    logger.info("Successfully loaded serverData");
+  } else {
+    fs.writeFileSync("./data/serverData.json", "[]");
+    serverData = [];
+    logger.info(`Created serverData.json and filled it with []`);
+  }
 }
 
 export function start(serverNum) {
@@ -94,7 +108,7 @@ export function newServer(data) {
 
         await currentServer.shutdownHandler.stopServer();
         resolve();
-        
+
         await currentServer.updateDirSize();
         saveServerData();
         saveOnExit(currentServer);
@@ -109,22 +123,9 @@ function saveOnExit(server) {
   });
 }
 
-/*export function stopAllServers(callback) {
-  let count = 0;
-  for (let i = 0; i < totalServers; i++) {
-    if (getData(i).status == "online") {
-      stop(i).then(() => {
-        count++;
-        if (count == totalServers) callback();
-      });
-    } else {
-      count++;
-    }
-  }
-  if (totalServers == count) callback();
-}*/
+listener.on("saveServerData", () => saveServerData());
 
-async function saveServerData() {
+export async function saveServerData() {
   fs.writeFileSync(
     "./data/serverData.json",
     JSON.stringify(serverData, null, 2),

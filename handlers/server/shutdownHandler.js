@@ -1,43 +1,55 @@
+import Logger from "../consoleHandler.js";
 import * as listener from "../listener.js";
 
 export default class ShutdownHandler {
   constructor(server) {
     this.#server = server;
+    this.#logger = new Logger([
+      "serverHandler",
+      "server " + server.serverNum,
+      "shutdownHandler",
+    ]);
   }
 
-  stopServerIn(sec, callback) {
-    if (callback) this.#callbacks.push(callback);
+  stopServerIn(callback, millis, shouldRestart = null) {
+    this.#logger.info(`Server shutting down in ${millis} millis`);
+    const shuttingDownAt = Date.now() + millis;
+    this.#callbacks.push({ callback, shouldRestart, shuttingDownAt });
     if (this.isTimeoutActive) {
-      const shuttingDownAt = Date.now() + sec * 1000;
       if (shuttingDownAt > this.serverShuttingDownAt) return;
       this.resetTimeouts();
-      this.setTimeouts(sec);
+      this.setTimeouts(millis);
     } else {
-      this.setTimeouts(sec);
+      this.setTimeouts(millis);
     }
   }
 
-  setTimeouts(sec) {
-    listener.emit("_serverStoppingInUpdate" + this.#server.serverNum, sec);
+  setTimeouts(millis) {
+    listener.emit(
+      "_serverStoppingInUpdate" + this.#server.serverNum,
+      millis / 1000
+    );
     const timeoutId = setTimeout(() => {
-      this.stopServer();
-    }, sec * 1000);
+      this.stopServer(false);
+    }, millis);
     this.#stopTimeoutIds = [timeoutId];
 
     this.#stopTimestamps.forEach((timestamp) => {
-      if (sec < timestamp) return;
+      if (millis < timestamp) return;
 
       const timeoutId = setTimeout(() => {
         this.logTimeLeftInServer(timestamp);
         this.#stopTimeoutIds.pop();
-      }, (sec - timestamp) * 1000);
+      }, (millis - timestamp) * 1000);
       this.#stopTimeoutIds.push(timeoutId);
     });
-    this.serverShuttingDownAt = Date.now() + sec * 1000;
+    this.serverShuttingDownAt = Date.now() + millis;
     this.isTimeoutActive = true;
   }
 
   logTimeLeftInServer(timeLeft) {
+    timeLeft /= 1000;
+    this.#logger.info(`Time logged in server (${timeLeft} seconds left)`);
     let quantity = "seconds";
     if (timeLeft >= 60) {
       quantity = "minutes";
@@ -50,6 +62,7 @@ export default class ShutdownHandler {
   }
 
   resetTimeouts() {
+    listener.emit("_serverStoppingInUpdate" + this.#server.serverNum, -1);
     this.#stopTimeoutIds.forEach((timeoutId) => {
       clearTimeout(timeoutId);
     });
@@ -57,7 +70,8 @@ export default class ShutdownHandler {
     this.isTimeoutActive = false;
   }
 
-  async stopServer() {
+  async stopServer(force = true) {
+    this.#calcTooEarlyCallbacks();
     this.resetTimeouts();
     this.#server.write("stop");
     this.#server.setServerStatus("stopping");
@@ -65,19 +79,41 @@ export default class ShutdownHandler {
       await new Promise((resolve) => setTimeout(resolve, 100));
       if (this.#server.status == "offline") break;
     }
-    this.callCallbacks();
+    this.callCallbacks(force);
   }
 
-  async callCallbacks() {
-    this.#callbacks.forEach((callback) => callback());
+  #calcTooEarlyCallbacks() {
+    const date = Date.now();
+    this.#callbacks.forEach((e) => {
+      e.timeTooEarly = e.shuttingDownAt - date;
+    });
+  }
+
+  async callCallbacks(forceShutdown) {
+    let shouldRestart = null;
+    for (const callback of this.#callbacks) {
+      await callback.callback(callback.timeTooEarly);
+      if (callback.shouldRestart === false && shouldRestart !== false)
+        shouldRestart = false;
+      if (callback.shouldRestart === true && shouldRestart === null)
+        shouldRestart = true;
+    }
+    if (shouldRestart && !forceShutdown) this.#server.start();
     this.#callbacks = [];
+  }
+
+  async restart(callbackOnShutdown) {
+    await this.stopServer();
+    if (callbackOnShutdown) await callbackOnShutdown();
+    this.#server.start();
   }
 
   isTimeoutActive = false;
   serverShuttingDownAt;
   #stopTimeoutIds = [];
   #callbacks = [];
-  #stopTimestamps = [10, 30, 60, 120, 300, 600, 1200, 1800];
+  #stopTimestamps = [10e3, 30e3, 60e3, 120e3, 300e3, 600e3, 1200e3, 1800e3]; //seconds
 
+  #logger;
   #server;
 }

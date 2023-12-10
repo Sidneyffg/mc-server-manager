@@ -1,15 +1,15 @@
 [
   {
-    "name": "test",
+    "name": "server",
     "type": "paper",
-    "version": "1.20.2",
+    "version": "1.20.4",
     "gamemode": "survival",
     "difficulty": "hard",
     "seed": "",
     "port": "25565",
-    "build": 298,
-    "creationDate": 1700639392366,
-    "dirSize": "188.7MB",
+    "build": 319,
+    "creationDate": 1702159950041,
+    "dirSize": "188.1MB",
     "eventHandler": {
       "todo": {
         "online": [],
@@ -17,7 +17,35 @@
       }
     },
     "backupHandler": {
-      "backups": []
+      "backups": [
+        {
+          "id": "32644c35-ba1e-4df9-b59b-553672057185",
+          "timestamp": 1702223831261
+        },
+        {
+          "id": "1ecd1ea5-43d1-49e5-bc44-4a00fcbc97d5",
+          "timestamp": 1702223700147
+        },
+        {
+          "id": "e2429ca8-fe0f-4b72-af98-721cbff08827",
+          "timestamp": 1702223614411
+        },
+        {
+          "id": "2b65c24f-d833-4ec6-a541-865d8e174abb",
+          "timestamp": 1702222951321
+        },
+        {
+          "id": "c195684a-7922-42e4-a690-88214dc266ea",
+          "timestamp": 1702222947872
+        },
+        {
+          "id": "9742b20b-beca-4c62-9dbc-8d4da314f0ae",
+          "timestamp": 1702160333890
+        }
+      ],
+      "timeSinceLastAutomaticBackup": 0,
+      "timeBetweenAutomaticBackups": -1,
+      "deleteAutomaticBackupAfter": -1
     }
   }
 ]

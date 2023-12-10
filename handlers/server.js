@@ -1,3 +1,4 @@
+import fs from "fs";
 import { spawn } from "child_process";
 import * as listener from "./listener.js";
 import Logger from "./consoleHandler.js";
@@ -13,9 +14,20 @@ export default class Server {
   constructor(serverNum, data, status = "offline") {
     this.serverNum = serverNum;
     this.data = data;
-    this.path = process.cwd() + "/data/servers/" + serverNum;
+    this.path = `${process.cwd()}/data/servers/${serverNum}`;
     this.status = status;
     this.#logger = new Logger(["serverHandler", `server ${serverNum}`]);
+
+    this.#checkServer();
+    this.#initHandlers();
+  }
+
+  #checkServer() {
+    if (!fs.existsSync(this.path))
+      this.#logger.exitWithError("Failed to find server dir");
+  }
+
+  #initHandlers() {
     this.fileHandler = new FileHandler(this);
     this.playerHandler = new PlayerHandler(this);
     this.eventHandler = new EventHandler(this);
@@ -49,7 +61,7 @@ export default class Server {
         this.eventHandler.handle(data, resolve);
         this.consoleLog += data;
       });
-      this.server.on("close", (code) => {
+      this.server.on("close", () => {
         if (this.status != "online") reject();
         this.setServerStatus("offline");
         this.server = null;

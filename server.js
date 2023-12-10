@@ -1,3 +1,11 @@
+import Logger from "./handlers/consoleHandler.js";
+const logger = new Logger(["webserver"]);
+process.on("exit", (code) => {
+  const text = `Exiting with code ${code}`;
+  if (code == -1) logger.error(text);
+  else logger.info(text);
+});
+
 import express from "express";
 const app = express();
 import { Server } from "socket.io";
@@ -9,8 +17,6 @@ import * as serverHandler from "./handlers/serverHandler.js";
 await serverHandler.init();
 import * as versionHandler from "./handlers/versionHandler.js";
 import * as listener from "./handlers/listener.js";
-import Logger from "./handlers/consoleHandler.js";
-const logger = new Logger(["webserver"]);
 
 app.set("view engine", "ejs");
 const websitePath = process.cwd() + "/website";
@@ -100,7 +106,7 @@ io.on("connection", (socket) => {
 
   socket.on("startServer", (serverNum) => {
     const server = serverHandler.get(serverNum);
-    if (server.status != "offline") return;
+    if (!server || server.status != "offline") return;
     server.start().catch(() => {
       socket.emit("startError", "data");
     });
@@ -112,10 +118,10 @@ io.on("connection", (socket) => {
     server.shutdownHandler.stopServer();
   });
 
-  socket.on("stopServerIn", (serverNum, sec) => {
+  socket.on("stopServerIn", (serverNum, ms) => {
     const server = serverHandler.get(serverNum);
     if (server.status != "online") return;
-    server.shutdownHandler.stopServerIn(sec);
+    server.shutdownHandler.stopServerIn(() => {}, ms, false);
   });
 
   socket.on("restartServer", async (serverNum) => {
@@ -164,15 +170,43 @@ io.on("connection", (socket) => {
       });
     }
   });
+
+  socket.on("updateBackupSettings", (serverNum, newSettings) => {
+    const server = serverHandler.get(serverNum);
+    server.backupHandler.updateAutomaticBackupSettings(newSettings);
+  });
+
+  socket.on("createBackup", (serverNum, createInMs = null) => {
+    const server = serverHandler.get(serverNum);
+    if (!server) return;
+
+    if (server.status == "offline") {
+      server.backupHandler.createBackup();
+      return;
+    }
+    if (createInMs === null) return;
+
+    if (createInMs == 0) {
+      server.shutdownHandler.restart(async () => {
+        await server.backupHandler.createBackup();
+      });
+      return;
+    }
+    server.shutdownHandler.stopServerIn(
+      async () => {
+        await server.backupHandler.createBackup();
+      },
+      createInMs,
+      true
+    );
+  });
+
+  socket.on("deleteBackup", (serverNum, backupId) => {
+    const server = serverHandler.get(serverNum);
+    server.backupHandler.deleteBackup(backupId);
+  });
 });
 
 server.listen(3000, () => {
   logger.info("Listening on *:3000");
 });
-
-/*process.on("beforeExit", (code) => {
-  console.log("jaja");
-  serverHandler.stopAllServers(() => {
-    process.exit(code);
-  });
-});*/

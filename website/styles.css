@@ -257,25 +257,6 @@ label.disabled {
   opacity: 65%;
 }
 
-#overview-stop-btn-content {
-  position: absolute;
-  top: calc(35px - 4px);
-  left: -2px;
-  width: 100px;
-  background-color: rgb(21, 23, 24);
-  border-radius: 5px;
-  border: 2px rgb(183, 76, 80) solid;
-  display: none;
-}
-
-#overview-stop-btn-content > button {
-  background-color: transparent;
-  border: none;
-  outline: none;
-  width: 100%;
-  height: 25px;
-}
-
 #overview-stop-checkbox:checked ~ label > div {
   display: block;
 }
@@ -292,8 +273,6 @@ label.disabled {
 #overview-stop-btn {
   border: 2px rgb(183, 76, 80) solid;
   color: rgb(183, 76, 80);
-  fill: rgb(183, 76, 80);
-  position: relative;
 }
 
 #overview-start-btn {
@@ -454,6 +433,10 @@ label.disabled {
   color: rgb(179, 179, 179);
 }
 
+#stop-server-in-popup {
+  display: none;
+}
+
 #stop-server-in-popup > .background {
   position: fixed;
   left: 0;
@@ -471,10 +454,33 @@ label.disabled {
   transform: translate(-50%, -50%);
   background-color: rgb(24, 26, 27);
   padding: 20px;
+  width: 350px;
   border-radius: 5px;
 }
 
-#stop-server-in-popup > .content > p {
+#stop-server-in-popup > .content > .reason {
+  margin-bottom: 15px;
+  color: gray;
+}
+
+#stop-server-in-popup
+  > .content
+  > .stop-switch:has(input:checked)
+  ~ .time-selector {
+  pointer-events: none;
+  opacity: 50%;
+}
+
+#stop-server-in-popup > .content > .stop-switch {
+  display: flex;
+  align-items: center;
+}
+
+#stop-server-in-popup > .content > .stop-switch > p {
+  margin-right: auto;
+}
+
+#stop-server-in-popup > .content > .time-selector {
   margin: 10px 0;
 }
 
@@ -696,8 +702,8 @@ input:checked + .slider-round:before {
 
 #server-backups-main > div {
   width: 50%;
-  height: 200px;
   padding: 20px;
+  height: fit-content;
 }
 
 #server-backups-list {
@@ -717,6 +723,52 @@ input:checked + .slider-round:before {
   background-color: rgb(21, 23, 24);
   border-radius: 5px;
   padding: 5px;
+}
+
+.backup-item {
+  background-color: rgb(15, 16, 17);
+  margin-top: 10px;
+  display: flex;
+  padding: 5px;
+  position: relative;
+}
+
+.backup-item > div:not(.list) :nth-child(2) {
+  color: rgb(190, 190, 190);
+}
+
+.backup-item > label {
+  margin-left: auto;
+  cursor: pointer;
+  display: flex;
+}
+
+.backup-item > label > svg {
+  height: 38px;
+  width: auto;
+}
+
+.backup-item > input:checked ~ .list {
+  display: flex;
+}
+
+.backup-item > .list {
+  position: absolute;
+  right: 0;
+  top: 40px;
+  background-color: rgb(24, 26, 27);
+  flex-direction: column;
+  border-radius: 3px;
+  border: 1px black solid;
+  display: none;
+  z-index: 100;
+}
+
+.backup-item > .list > button {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  padding: 10px;
 }
 
 #automatic-backups-header {
