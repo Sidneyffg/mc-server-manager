@@ -118,6 +118,7 @@ export default class BackupHandler {
       `${backupPath}/world_the_end`
     );
 
+    listener.emit("_backupUpdate" + this.#server.serverNum, this.data.backups);
     listener.emit("saveServerData");
   }
 

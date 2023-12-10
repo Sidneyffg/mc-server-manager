@@ -25,10 +25,10 @@ function run() {
   });
 
   socket.on(`backupUpdate${std.server.num}`, (backups) => {
-    const backupHtml = `
+    let backupHtml = `
     <div>
       <h3>Backups</h3>
-      <button>Create backup</button>
+      <button onclick="createBackup()">Create backup</button>
     </div>`;
 
     const date = new Date();
@@ -36,7 +36,7 @@ function run() {
 
     backups.forEach((backup, idx) => {
       const backupDate = new Date(backup.timestamp);
-      const minutes = "0" + date.getMinutes();
+      const minutes = "0" + backupDate.getMinutes();
       backupHtml += `
       <div class="backup-item">
         <div>
