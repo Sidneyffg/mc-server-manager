@@ -41,11 +41,11 @@
     <main id="server-overview-page">
       <div id="overview-onn">
         <div id="active-server-btns" style="display: <%= serverData.status == "offline" || serverData.status == "stopping" ? "flex" : "none" %>;">
-          <button id="overview-stop-btn" onclick="stopMenu.open()"><p>Stop</p></button>
-          <button id="overview-restart-btn" onclick="std.server.restart()"><p>Restart</p></button>
+          <button id="overview-stop-btn" onclick="utils.stopMenu.open()"><p>Stop</p></button>
+          <button id="overview-restart-btn" onclick="utils.server.restart()"><p>Restart</p></button>
         </div>
         <div id="inactive-server-btns" style="display: <%= serverData.status == "offline" || serverData.status == "stopping" ? "none" : "flex" %>;">
-          <button id="overview-start-btn" onclick="std.server.start()"><p>Start</p></button>
+          <button id="overview-start-btn" onclick="utils.server.start()"><p>Start</p></button>
         </div>
       </div>
       <div id="overview-players" class="players-container">

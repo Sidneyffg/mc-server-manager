@@ -1,6 +1,5 @@
-let stopMenu;
 function run() {
-  socket.on(`automaticBackupSettingsUpdate${std.server.num}`, (newSettings) => {
+  socket.on(`automaticBackupSettingsUpdate${utils.server.num}`, (newSettings) => {
     closeEditPopup();
 
     for (const e in newSettings)
@@ -24,7 +23,7 @@ function run() {
     stdBackupData = getBackupData();
   });
 
-  socket.on(`backupUpdate${std.server.num}`, (backups) => {
+  socket.on(`backupUpdate${utils.server.num}`, (backups) => {
     let backupHtml = `
     <div>
       <h3>Backups</h3>
@@ -63,7 +62,7 @@ function run() {
     });
     document.getElementById("server-backups-list").innerHTML = backupHtml;
   });
-  stopMenu = new StopMenu();
+  utils.stopMenu.init();
 }
 
 const getById = (id) => document.getElementById(id);
@@ -127,7 +126,7 @@ function change() {
 
 function saveChanges() {
   const newBackupData = getBackupData();
-  socket.emit(`updateBackupSettings${std.server.num}`, newBackupData);
+  socket.emit(`updateBackupSettings${utils.server.num}`, newBackupData);
 }
 
 function replaceNonNumbers() {
@@ -164,18 +163,18 @@ const months = [
 ];
 
 function createBackup() {
-  if (std.server.status == "offline") {
-    socket.emit("createBackup", std.server.num);
+  if (utils.server.status == "offline") {
+    socket.emit("createBackup", utils.server.num);
     return;
   }
-  stopMenu.open(
+  utils.stopMenu.open(
     "backup",
     (data) => {
       if (!data.shouldStop) return;
-      socket.emit("createBackup", std.server.num, data.time);
+      socket.emit("createBackup", utils.server.num, data.time);
     },
     true
   );
 }
 
-const deleteBackup = (id) => socket.emit("deleteBackup", std.server.num, id);
+const deleteBackup = (id) => socket.emit("deleteBackup", utils.server.num, id);

@@ -118,6 +118,8 @@ export default class BackupHandler {
       `${backupPath}/world_the_end`
     );
 
+    const time = Date.now() - timestamp;
+    this.#logger.info(`Finished backup (${time} ms)`);
     listener.emit("_backupUpdate" + this.#server.serverNum, this.data.backups);
     listener.emit("saveServerData");
   }
@@ -135,6 +137,8 @@ export default class BackupHandler {
       this.data.backups.splice(backupIdx, 1);
       return;
     }
+
+    this.#logger.info(`Deleting backup with id "${id}"`);
     fs.rm(path, { recursive: true }, (err) => {
       if (err) {
         this.#logger.error("Failed to delete backup");

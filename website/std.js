@@ -1,5 +1,5 @@
 const socket = io();
-std = {
+const utils = {
   init() {
     this.server.num = window.location.pathname.split("/")[2];
     socket.on(`statusUpdate${this.server.num}`, (newStatus) => {
@@ -51,7 +51,7 @@ std = {
     stopIn(ms) {
       if (this.status != "online") return;
 
-      socket.emit("stopServerIn", std.server.num, ms);
+      socket.emit("stopServerIn", utils.server.num, ms);
     },
     start() {
       if (this.status != "offline") return;
@@ -68,18 +68,26 @@ std = {
     },
     callbacks: [],
   },
-};
-std.init();
+  stopMenu: {
+    init() {
+      this._createPopup();
+      this.background = utils.getChildInElem(this.popup, [0]);
+      this.reasonText = utils.getChildInElem(this.popup, [1, 1]);
+      this.stopNowInp = utils.getChildInElem(this.popup, [1, 2, 1, 0]);
+      this.timeInp = utils.getChildInElem(this.popup, [1, 3, 0]);
 
-class StopMenu {
-  constructor() {
-    this.#createMenu();
-  }
-
-  #createMenu() {
-    const menu = std.createElem(
-      "div",
-      `
+      this.background.addEventListener("click", () => this.close());
+      utils.getChildInElem(this.popup, [1, 4]).addEventListener("click", () => {
+        if (this._stop()) {
+          this._callCallback(true);
+          this.close();
+        }
+      });
+    },
+    _createPopup() {
+      const popup = utils.createElem(
+        "div",
+        `
     <div class="background"></div>
     <div class="content">
       <h1>Stop server</h1>
@@ -95,61 +103,49 @@ class StopMenu {
       <button>Stop</button>
     </div>
     `,
-      { id: "stop-server-in-popup" }
-    );
-    this.popup = menu;
-    this.background = std.getChildInElem(menu, [0]);
-    this.reasonText = std.getChildInElem(menu, [1, 1]);
-    this.stopNowInp = std.getChildInElem(menu, [1, 2, 1, 0]);
-    this.timeInp = std.getChildInElem(menu, [1, 3, 0]);
+        { id: "stop-server-in-popup" }
+      );
+      document.body.appendChild(popup);
+      this.popup = popup;
+    },
 
-    this.background.addEventListener("click", () => this.close());
-    std.getChildInElem(menu, [1, 4]).addEventListener("click", () => {
-      if (this.#stop()) {
-        this.#callCallback(true);
-        this.close();
+    open(reason = null, callback = null, ignoreStop = false) {
+      this.callback = callback;
+      this.ignoreStop = ignoreStop;
+      this.reasonText.innerHTML = reason ? "For " + reason : "";
+      this.stopNowInp.checked = true;
+      this.timeInp.value = "";
+      this.popup.style.display = "block";
+    },
+
+    close() {
+      this.popup.style.display = "none";
+      this._callCallback({ shouldStop: false });
+    },
+
+    _callCallback(data) {
+      if (!this.callback) return;
+      this.callback(data);
+      this.callback = null;
+    },
+
+    _stop() {
+      const stopNow = this.stopNowInp.checked;
+
+      if (stopNow) {
+        this._callCallback({ shouldStop: true, time: 0 });
+        if (!this.ignoreStop) utils.server.stop();
+        return true;
       }
-    });
 
-    document.body.appendChild(menu);
-  }
+      const min = this.timeInp.value;
+      if (parseFloat(min).toString() != min || min <= 0) return false;
+      const time = Math.round(min * 6e4);
 
-  open(reason = null, callback = null, ignoreStop = false) {
-    this.callback = callback;
-    this.ignoreStop = ignoreStop;
-    this.reasonText.innerHTML = reason ? "For " + reason : "";
-    this.stopNowInp.checked = true;
-    this.timeInp.value = "";
-    this.popup.style.display = "block";
-  }
-
-  close() {
-    this.popup.style.display = "none";
-    this.#callCallback({ shouldStop: false });
-  }
-
-  #callCallback(data) {
-    if (!this.callback) return;
-    this.callback(data);
-    this.callback = null;
-  }
-
-  #stop() {
-    console.log("#stop");
-    const stopNow = this.stopNowInp.checked;
-
-    if (stopNow) {
-      this.#callCallback({ shouldStop: true, time: 0 });
-      if (!this.ignoreStop) std.server.stop();
+      this._callCallback({ shouldStop: true, time });
+      if (!this.ignoreStop) utils.server.stopIn(Math.round(min * 6e4));
       return true;
-    }
-
-    const min = this.timeInp.value;
-    if (parseFloat(min).toString() != min || min <= 0) return false;
-    const time = Math.round(min * 6e4);
-
-    this.#callCallback({ shouldStop: true, time });
-    if (!this.ignoreStop) std.server.stopIn(Math.round(min * 6e4));
-    return true;
-  }
-}
+    },
+  },
+};
+utils.init();

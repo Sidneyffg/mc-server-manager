@@ -13,23 +13,22 @@ socket.on("usageUpdate", (usage) => {
   usageMem.innerHTML = Math.round(usage.memUsage.usedMemMb / 10) / 100 + "GB";
 });
 
-let stopMenu;
 
-std.server.onStatusUpdate(() => serverStatusUpdate());
+utils.server.onStatusUpdate(() => serverStatusUpdate());
 function run() {
   serverStatusUpdate();
-  stopMenu = new StopMenu();
-  socket.on("serverDirSizeUpdate" + std.server.num, (dirSize) => {
+  utils.stopMenu.init();
+  socket.on("serverDirSizeUpdate" + utils.server.num, (dirSize) => {
     usageStorage.innerHTML = dirSize;
   });
-  socket.on("serverStoppingInUpdate" + std.server.num, (sec) => {
+  socket.on("serverStoppingInUpdate" + utils.server.num, (sec) => {
     if (sec == -1) {
       hideStoppingInInfo();
       return;
     }
     showStoppingInInfo(sec);
   });
-  socket.on("consoleUpdate" + std.server.num, (data) => {
+  socket.on("consoleUpdate" + utils.server.num, (data) => {
     console.log("received consoleUpdate");
     let scrollDown =
       parent.scrollTop + parent.clientHeight == parent.scrollHeight;
@@ -46,7 +45,7 @@ function run() {
     }
   });
 
-  socket.on("onlinePlayersUpdate" + std.server.num, (onlinePlayers) => {
+  socket.on("onlinePlayersUpdate" + utils.server.num, (onlinePlayers) => {
     const playersDiv = document.getElementById("players-div");
     let playersHtml = "";
     onlinePlayers.forEach((player) => {
@@ -76,8 +75,8 @@ function run() {
   });
 }
 function serverStatusUpdate() {
-  console.log(std.server.status);
-  switch (std.server.status) {
+  console.log(utils.server.status);
+  switch (utils.server.status) {
     case "starting":
       editServerBtns(false, true);
       serverConsole.innerHTML = "";
@@ -159,5 +158,5 @@ function stopServerIn() {
   closeStopServerInPopup();
 
   const sec = Math.round(min * 60);
-  socket.emit("stopServerIn", std.server.num, sec);
+  socket.emit("stopServerIn", utils.server.num, sec);
 }
