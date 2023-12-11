@@ -59,7 +59,7 @@ const utils = {
       socket.emit("startServer", this.num);
     },
     restart() {
-      if (this.status != "offline") return;
+      if (this.status != "online") return;
 
       socket.emit("restartServer", this.num);
     },
