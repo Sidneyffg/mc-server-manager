@@ -1,17 +1,13 @@
 const socket = io();
 const utils = {
   init() {
-    this.server.num = window.location.pathname.split("/")[2];
-    socket.on(`statusUpdate${this.server.num}`, (newStatus) => {
-      this.server.status = newStatus;
-      this.server.callbacks.forEach((callback) => callback());
-    });
+    this.server.init();
     if (this.hasWebsiteLoaded()) this.initWhenSiteLoaded();
     else window.addEventListener("load", () => this.initWhenSiteLoaded());
   },
   initWhenSiteLoaded() {
     this.server.status = document.body.dataset.serverstatus;
-    if (typeof run == "function") run();
+    if (typeof main.start == "function") main.start();
   },
   hasWebsiteLoaded() {
     return (
@@ -43,6 +39,12 @@ const utils = {
   server: {
     status: null,
     num: null,
+    init() {
+      this.num = window.location.pathname.split("/")[2];
+      this.on("statusUpdate", (newStatus) => {
+        this.status = newStatus;
+      });
+    },
     stop() {
       if (this.status != "online") return;
 
@@ -63,10 +65,28 @@ const utils = {
 
       socket.emit("restartServer", this.num);
     },
-    onStatusUpdate(callback) {
-      this.callbacks.push(callback);
+    on(event, callback) {
+      this._listener.add(event, callback);
     },
-    callbacks: [],
+
+    _listener: {
+      add(event, callback) {
+        let callbackItem = this.findCallbackItem(event);
+        if (!callbackItem) callbackItem = this.new(event);
+        callbackItem.callbacks.push(callback);
+      },
+      new(event) {
+        socket.on(event + utils.server.num, (...args) => {
+          this.findCallbackItem(event).callbacks.forEach((e) => e(...args));
+        });
+        this.callbacks.push({ event, callbacks: [] });
+        return this.findCallbackItem(event);
+      },
+      findCallbackItem(event) {
+        return this.callbacks.find((e) => e.event == event);
+      },
+      callbacks: [],
+    },
   },
   stopMenu: {
     init() {

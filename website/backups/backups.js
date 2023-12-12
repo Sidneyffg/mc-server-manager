@@ -1,27 +1,30 @@
 function run() {
-  socket.on(`automaticBackupSettingsUpdate${utils.server.num}`, (newSettings) => {
-    closeEditPopup();
+  socket.on(
+    `automaticBackupSettingsUpdate${utils.server.num}`,
+    (newSettings) => {
+      closeEditPopup();
 
-    for (const e in newSettings)
-      if (newSettings[e] != -1) newSettings[e] /= 36e5;
+      for (const e in newSettings)
+        if (newSettings[e] != -1) newSettings[e] /= 36e5;
 
-    const automaticBackup = newSettings.timeBetweenAutomaticBackups !== -1;
-    automaticBackupsSwitch.checked = automaticBackup;
-    deleteBackupTimeInp.value =
-      newSettings.deleteAutomaticBackupAfter == -1
-        ? ""
-        : newSettings.deleteAutomaticBackupAfter;
-    if (automaticBackup) {
-      backupTimeInp.value = newSettings.timeBetweenAutomaticBackups;
+      const automaticBackup = newSettings.timeBetweenAutomaticBackups !== -1;
+      automaticBackupsSwitch.checked = automaticBackup;
+      deleteBackupTimeInp.value =
+        newSettings.deleteAutomaticBackupAfter == -1
+          ? ""
+          : newSettings.deleteAutomaticBackupAfter;
+      if (automaticBackup) {
+        backupTimeInp.value = newSettings.timeBetweenAutomaticBackups;
 
-      openAutomaticBackupsContent();
-    } else {
-      closeAutomaticBackupsContent();
-      backupTimeInp.value = "1";
+        openAutomaticBackupsContent();
+      } else {
+        closeAutomaticBackupsContent();
+        backupTimeInp.value = "1";
+      }
+
+      stdBackupData = getBackupData();
     }
-
-    stdBackupData = getBackupData();
-  });
+  );
 
   socket.on(`backupUpdate${utils.server.num}`, (backups) => {
     let backupHtml = `
@@ -126,7 +129,7 @@ function change() {
 
 function saveChanges() {
   const newBackupData = getBackupData();
-  socket.emit(`updateBackupSettings${utils.server.num}`, newBackupData);
+  socket.emit("updateBackupSettings", utils.server.num, newBackupData);
 }
 
 function replaceNonNumbers() {

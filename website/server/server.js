@@ -1,162 +1,178 @@
-const serverConsole = document.getElementById("server-console");
-const parent = serverConsole.parentElement;
-parent.scrollTop = parent.scrollHeight;
+const main = {
+  start() {
+    utils.stopMenu.init();
+    this.serverConsole.init();
+    this.usage.init();
+    this.serverStoppingInCountdown.init();
+    this.serverPowerBtns.init();
 
-let currentType = "INFO";
-
-const usageCpu = document.getElementById("usage-cpu"),
-  usageMem = document.getElementById("usage-mem"),
-  usageStorage = document.getElementById("usage-storage");
-
-socket.on("usageUpdate", (usage) => {
-  usageCpu.innerHTML = usage.cpuUsage + "%";
-  usageMem.innerHTML = Math.round(usage.memUsage.usedMemMb / 10) / 100 + "GB";
-});
-
-
-utils.server.onStatusUpdate(() => serverStatusUpdate());
-function run() {
-  serverStatusUpdate();
-  utils.stopMenu.init();
-  socket.on("serverDirSizeUpdate" + utils.server.num, (dirSize) => {
-    usageStorage.innerHTML = dirSize;
-  });
-  socket.on("serverStoppingInUpdate" + utils.server.num, (sec) => {
-    if (sec == -1) {
-      hideStoppingInInfo();
-      return;
-    }
-    showStoppingInInfo(sec);
-  });
-  socket.on("consoleUpdate" + utils.server.num, (data) => {
-    console.log("received consoleUpdate");
-    let scrollDown =
-      parent.scrollTop + parent.clientHeight == parent.scrollHeight;
-
-    let type = /\[[0-9]{2}\:[0-9]{2}\:[0-9]{2} ([A-Z]{4,5})|\]:/m.exec(data);
-    if (type) currentType = type[1];
-
-    serverConsole.innerHTML += `<span class="span-color-${currentType}">${data.replaceAll(
-      "\n",
-      "<br>"
-    )}</span>`;
-    if (scrollDown) {
-      parent.scrollTop = parent.scrollHeight;
-    }
-  });
-
-  socket.on("onlinePlayersUpdate" + utils.server.num, (onlinePlayers) => {
-    const playersDiv = document.getElementById("players-div");
-    let playersHtml = "";
-    onlinePlayers.forEach((player) => {
-      playersHtml += `
-      <div>
-      <img
-        src="https://mc-heads.net/avatar/${player}/40"
-      />
-      <div>
-        <p>USERNAME</p>
-        <p>${player}</p>
-      </div>
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        height="24"
-        viewBox="0 -960 960 960"
-        width="24"
-      >
-        <path
-          fill="white"
-          d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z"
+    // need to add player list to utils
+    utils.server.on("onlinePlayersUpdate", (onlinePlayers) => {
+      const playersDiv = document.getElementById("players-div");
+      let playersHtml = "";
+      onlinePlayers.forEach((player) => {
+        playersHtml += `
+        <div>
+        <img
+          src="https://mc-heads.net/avatar/${player}/40"
         />
-      </svg>
-    </div>`;
+        <div>
+          <p>USERNAME</p>
+          <p>${player}</p>
+        </div>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          height="24"
+          viewBox="0 -960 960 960"
+          width="24"
+        >
+          <path
+            fill="white"
+            d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z"
+          />
+        </svg>
+      </div>`;
+      });
+      playersDiv.innerHTML = playersHtml;
     });
-    playersDiv.innerHTML = playersHtml;
-  });
-}
-function serverStatusUpdate() {
-  console.log(utils.server.status);
-  switch (utils.server.status) {
-    case "starting":
-      editServerBtns(false, true);
-      serverConsole.innerHTML = "";
-      console.log("console reset");
-      break;
-    case "online":
-      editServerBtns(true, false);
-      break;
-    case "stopping":
-      editServerBtns(true, true);
-      break;
-    case "offline":
-      editServerBtns(false, false);
-      break;
-  }
-}
+  },
+  serverConsole: {
+    init() {
+      this.elemParent.scrollTop = this.elemParent.scrollHeight;
+      utils.server.on("consoleUpdate", (message) => {
+        this.newMessage(message);
+      });
+      utils.server.on("statusUpdate", (status) => {
+        if (status !== "starting") return;
+        this._clear();
+      });
+    },
+    _clear() {
+      this.elem.innerHTML = "";
+    },
+    newMessage(message) {
+      let isScrolledDown =
+        this.elemParent.scrollTop + this.elemParent.clientHeight ==
+        this.elemParent.scrollHeight;
 
-function editServerBtns(showActive, disabled) {
-  const activeServerBtns = document.getElementById("active-server-btns"),
-    inActiveServerBtns = document.getElementById("inactive-server-btns");
+      this._handleMessageType(message);
 
-  activeServerBtns.style.display = showActive ? "flex" : "none";
-  inActiveServerBtns.style.display = showActive ? "none" : "flex";
+      message = message.replaceAll("\n", "<br>");
+      const data = `<span class="span-color-${this.currentType}">${message}</span>`;
+      this._appendData(data);
 
-  Array.from(
-    (showActive ? activeServerBtns : inActiveServerBtns).children
-  ).forEach((e) => {
-    e.disabled = disabled;
-    if (disabled) {
-      e.classList.add("disabled");
-    } else {
-      e.classList.remove("disabled");
-    }
-  });
-}
-const stoppingInInfo = document.getElementById("stopping-in-info");
-const stoppingInInfoP = document.getElementById("stopping-in-info-p");
-let stoppingInInfoIntervalId;
-function showStoppingInInfo(sec) {
-  hideStoppingInInfo();
-  stoppingInInfoIntervalId = setInterval(decreaseStoppingInInfo, 1000);
-  stoppingInInfoP.innerHTML = sec;
-  stoppingInInfo.style.display = "block";
-}
+      if (isScrolledDown) this._scrollDown();
+    },
+    _messageTypeRegex: /\[[0-9]{2}\:[0-9]{2}\:[0-9]{2} ([A-Z]{4,5})|\]:/m,
+    _handleMessageType(message) {
+      const splitMessage = this._messageTypeRegex.exec(message);
+      if (!splitMessage) return;
+      const type = splitMessage[1];
+      this.currentType = type;
+    },
+    _appendData(data) {
+      this.elem.innerHTML += data;
+    },
+    _scrollDown() {
+      this.elemParent.scrollTop = this.elemParent.scrollHeight;
+    },
+    elem: document.getElementById("server-console"),
+    elemParent: document.getElementById("overview-console"),
+    currentType: "INFO",
+  },
+  usage: {
+    init() {
+      socket.on("usageUpdate", (usage) => {
+        const cpu = usage.cpuUsage + "%";
+        const mem = Math.round(usage.memUsage.usedMemMb / 10) / 100 + "GB";
+        this.updateUsage({ cpu, mem });
+      });
+      utils.server.on("serverDirSizeUpdate", (dirSize) => {
+        this.updateUsage({ storage: dirSize });
+      });
+    },
+    updateUsage(newUsage) {
+      if (newUsage.cpu) this.usageCpu.innerHTML = newUsage.cpu;
+      if (newUsage.mem) this.usageMem.innerHTML = newUsage.mem;
+      if (newUsage.storage) this.usageStorage.innerHTML = newUsage.storage;
+    },
+    usageCpu: document.getElementById("usage-cpu"),
+    usageMem: document.getElementById("usage-mem"),
+    usageStorage: document.getElementById("usage-storage"),
+  },
+  serverStoppingInCountdown: {
+    init() {
+      utils.server.on("serverStoppingInUpdate", (sec) => {
+        if (sec == -1) {
+          this.stop();
+          return;
+        }
+        this.start(sec);
+      });
 
-function decreaseStoppingInInfo() {
-  const value = parseInt(stoppingInInfoP.innerHTML) - 1;
-  if (value == 0) {
-    hideStoppingInInfo();
-    return;
-  }
-  stoppingInInfoP.innerHTML = value;
-}
+      const value = parseInt(this.elemText.innerHTML);
+      if (isNaN(value) || value <= 0) return;
 
-function hideStoppingInInfo() {
-  stoppingInInfo.style.display = "none";
-  if (stoppingInInfoIntervalId) clearInterval(stoppingInInfoIntervalId);
-}
+      this.start(value);
+    },
+    elem: document.getElementById("stopping-in-info"),
+    elemText: document.getElementById("stopping-in-info-p"),
+    intervalId: null,
+    start(sec) {
+      this.stop();
+      this.intervalId = setInterval(() => this.decrease(), 1000);
+      this.elemText.innerHTML = sec;
+      this.elem.style.display = "block";
+    },
+    stop() {
+      this.elem.style.display = "none";
+      if (this.intervalId) clearInterval(this.intervalId);
+      this.intervalId = null;
+    },
+    decrease() {
+      const value = parseInt(this.elemText.innerHTML) - 1;
+      if (value == 0) {
+        this.stop();
+        return;
+      }
+      this.elemText.innerHTML = value;
+    },
+  },
+  serverPowerBtns: {
+    init() {
+      this._handleStatusUpdate(utils.server.status);
+      utils.server.on("statusUpdate", (status) =>
+        this._handleStatusUpdate(status)
+      );
+    },
+    _handleStatusUpdate() {
+      const status = utils.server.status;
+      switch (status) {
+        case "starting":
+          this._editBtns(false, true);
+          break;
+        case "online":
+          this._editBtns(true, false);
+          break;
+        case "stopping":
+          this._editBtns(true, true);
+          break;
+        case "offline":
+          this._editBtns(false, false);
+          break;
+      }
+    },
+    _editBtns(showActive, setDisabled) {
+      this._activeBtns.style.display = showActive ? "flex" : "none";
+      this._inActiveBtns.style.display = showActive ? "none" : "flex";
 
-const stopServerInPopup = document.getElementById("stop-server-in-popup");
-const stopServerInPopupInp = document.getElementById(
-  "stop-server-in-popup-inp"
-);
-function openStopServerInPopup() {
-  document.getElementById("overview-stop-checkbox").checked = false;
-  stopServerInPopupInp.value = "";
-  stopServerInPopup.style.display = "block";
-}
-
-function closeStopServerInPopup() {
-  stopServerInPopup.style.display = "none";
-}
-
-function stopServerIn() {
-  const min = stopServerInPopupInp.value;
-
-  if (parseFloat(min).toString() != min || min <= 0) return;
-
-  closeStopServerInPopup();
-
-  const sec = Math.round(min * 60);
-  socket.emit("stopServerIn", utils.server.num, sec);
-}
+      Array.from(
+        (showActive ? this._activeBtns : this._inActiveBtns).children
+      ).forEach((e) => {
+        e.disabled = setDisabled;
+      });
+    },
+    _activeBtns: document.getElementById("active-server-btns"),
+    _inActiveBtns: document.getElementById("inactive-server-btns"),
+  },
+};
