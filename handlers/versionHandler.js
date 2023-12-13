@@ -1,10 +1,36 @@
+import fs from "fs";
 import https from "https";
 import Logger from "./consoleHandler.js";
 const logger = new Logger(["versionHandler"]);
 
-export const allVersions = {
-  paper: [],
-};
+const dataPath = `${process.cwd()}/data/versionHandler.json`;
+export let data;
+
+async function saveData() {
+  fs.writeFile(dataPath, JSON.stringify(data, null, 2), (err) => {
+    if (err) throw err;
+  });
+}
+
+(() => {
+  if (!fs.existsSync(dataPath)) {
+    fs.writeFileSync(
+      dataPath,
+      `{
+        "allVersions": {
+          "lastChecked": 0,
+          "paper": [],
+          "vanilla": []
+        },
+        "sortedVersions": {
+          "paper": [],
+          "vanilla": []
+        }
+      }`
+    );
+  }
+  data = JSON.parse(fs.readFileSync(dataPath));
+})();
 
 export function getEditableServerSettings(type, version) {
   const editableSettings = [
@@ -60,36 +86,81 @@ export const allSettings = {
 };
 
 export async function getServerVersions() {
-  const paperVersions = (
-    await getJsonFromLink("https://api.papermc.io/v2/projects/paper/")
-  ).versions;
-  await getServerBuilds(paperVersions);
-  allVersions.paper.sort(
-    (a, b) => parseFloat(b.version.slice(2)) - parseFloat(a.version.slice(2))
-  );
+  await getPaperVersions();
+  await getVanillaVersions();
+  sortAllVersions();
+  saveData();
 }
 
-function getServerBuilds(versions) {
-  let count = 0;
-  return new Promise((resolve) => {
-    versions.forEach(async (version) => {
-      const latest_build = (
-        await getJsonFromLink(
-          "https://api.papermc.io/v2/projects/paper/versions/" + version
-        )
-      ).builds.pop();
-      if (version != "1.13-pre7") {
-        allVersions.paper.push({
-          version: version,
-          latest_build: latest_build,
-        });
+function sortAllVersions() {
+  data.allVersions.paper.sort(
+    (a, b) => parseFloat(b.version.slice(2)) - parseFloat(a.version.slice(2))
+  );
+  data.allVersions.vanilla.sort((a, b) => b.timestamp - a.timestamp);
+}
+
+
+function getVanillaVersions() {
+  return new Promise(async (resolve) => {
+    const allVersions = data.allVersions.vanilla;
+    const versions = (
+      await getJsonFromLink(
+        "https://launchermeta.mojang.com/mc/game/version_manifest.json"
+      )
+    ).versions;
+
+    let count = 0;
+    versions.forEach(async (e) => {
+      if (!allVersions.find((a) => a.version == e.id)) {
+        const jsonData = await getJsonFromLink(e.url);
+        let url = null;
+        let timestamp = null;
+        if (jsonData.downloads.server) {
+          url = jsonData.downloads.server.url;
+          timestamp = new Date(jsonData.releaseTime).getTime();
+        }
+        allVersions.push({ version: e.id, url, type: e.type, timestamp });
       }
       count++;
+      if (count != versions.length) return;
+      logger.info("Loaded vanilla versions");
+      resolve();
+    });
+  });
+}
 
-      if (count == versions.length) {
-        logger.info("Loaded paper versions");
-        resolve();
+function getPaperVersions() {
+  return new Promise(async (resolve) => {
+    const allVersions = data.allVersions.paper;
+    const versions = (
+      await getJsonFromLink("https://api.papermc.io/v2/projects/paper/")
+    ).versions;
+
+    let count = 0;
+    versions.forEach(async (version) => {
+      const jsonData = await getJsonFromLink(
+        "https://api.papermc.io/v2/projects/paper/versions/" + version
+      );
+      const latest_build = jsonData.builds.pop();
+
+      const thisAllVersions = allVersions.find((e) => e.version == version);
+      if (!thisAllVersions)
+        allVersions.push({
+          version,
+          latest_build,
+          url: `https://api.papermc.io/v2/projects/paper/versions/${version}/builds/${latest_build}/downloads/paper-${version}-${latest_build}.jar`,
+        });
+      else if (thisAllVersions.latest_build != latest_build) {
+        logger.error("updated build");
+        thisAllVersions.latest_build = latest_build;
+        thisAllVersions.url = `https://api.papermc.io/v2/projects/paper/versions/${version}/builds/${latest_build}/downloads/paper-${version}-${latest_build}.jar`;
       }
+
+      count++;
+
+      if (count != versions.length) return;
+      logger.info("Loaded paper versions");
+      resolve();
     });
   });
 }

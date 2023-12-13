@@ -45,7 +45,7 @@ app.get("/servers", (req, res) => {
     serverData.push(serverHandler.get(i));
   }
   res.render(websitePath + "/index.ejs", {
-    versions: versionHandler.allVersions,
+    versions: versionHandler.data.allVersions,
     serverData,
     statusToColor,
   });
@@ -92,7 +92,7 @@ app.get("/servers/*", (req, res) => {
 
 app.get("/newserver", (req, res) => {
   const data = req.query;
-  data.build = versionHandler.allVersions.paper.find(
+  data.build = versionHandler.data.allVersions.paper.find(
     (e) => e.version == data.version
   ).latest_build;
 
