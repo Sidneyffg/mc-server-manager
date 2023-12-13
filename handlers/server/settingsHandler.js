@@ -1,6 +1,6 @@
 import Logger from "../consoleHandler.js";
 import * as listener from "../listener.js";
-import * as versionHandler from "../versionHandler.js";
+import versionHandler from "../versionHandler.js";
 
 export default class SettingsHandler {
   constructor(server) {

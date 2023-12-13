@@ -15,7 +15,7 @@ const io = new Server(server);
 
 import * as serverHandler from "./handlers/serverHandler.js";
 await serverHandler.init();
-import * as versionHandler from "./handlers/versionHandler.js";
+import versionHandler from "./handlers/versionHandler.js";
 import * as listener from "./handlers/listener.js";
 
 app.set("view engine", "ejs");
@@ -45,7 +45,7 @@ app.get("/servers", (req, res) => {
     serverData.push(serverHandler.get(i));
   }
   res.render(websitePath + "/index.ejs", {
-    versions: versionHandler.data.allVersions,
+    versions: versionHandler.data.get().allVersions,
     serverData,
     statusToColor,
   });
@@ -92,7 +92,7 @@ app.get("/servers/*", (req, res) => {
 
 app.get("/newserver", (req, res) => {
   const data = req.query;
-  data.build = versionHandler.data.allVersions.paper.find(
+  data.build = versionHandler.data.get().allVersions.paper.find(
     (e) => e.version == data.version
   ).latest_build;
 
