@@ -16,6 +16,7 @@ const io = new Server(server);
 import * as serverHandler from "./handlers/serverHandler.js";
 await serverHandler.init();
 import versionHandler from "./handlers/versionHandler.js";
+versionHandler.init();
 import * as listener from "./handlers/listener.js";
 
 app.set("view engine", "ejs");
@@ -92,9 +93,9 @@ app.get("/servers/*", (req, res) => {
 
 app.get("/newserver", (req, res) => {
   const data = req.query;
-  data.build = versionHandler.data.get().allVersions.paper.find(
-    (e) => e.version == data.version
-  ).latest_build;
+  data.build = versionHandler.data
+    .get()
+    .allVersions.paper.find((e) => e.version == data.version).latest_build;
 
   const newServerNum = serverHandler.totalServers;
   serverHandler.newServer(data);

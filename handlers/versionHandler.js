@@ -3,6 +3,12 @@ import https from "https";
 import Logger from "./consoleHandler.js";
 
 const versionHandler = {
+  init() {
+    this.data.init();
+    this.vanilla.init();
+    this.paper.init();
+    this.logger.info("Initialized");
+  },
   data: {
     init() {
       if (!fs.existsSync(this.path)) {
@@ -35,83 +41,94 @@ const versionHandler = {
     data: null,
   },
   async getServerVersions() {
-    await this.getPaperVersions();
-    await this.getVanillaVersions();
-    this.sortAllVersions();
+    await this.paper.getVersions();
+    await this.vanilla.getVersions();
     this.data.save();
   },
-  sortAllVersions() {
-    this.data
-      .get()
-      .allVersions.paper.sort(
+  vanilla: {
+    init() {
+      this.data = versionHandler.data.get().allVersions.vanilla;
+    },
+    getVersions() {
+      return new Promise(async (resolve) => {
+        const versions = (
+          await versionHandler.getJsonFromLink(
+            "https://launchermeta.mojang.com/mc/game/version_manifest.json"
+          )
+        ).versions;
+
+        let count = 0;
+        versions.forEach(async (e) => {
+          if (!this.data.find((a) => a.version == e.id)) {
+            const jsonData = await versionHandler.getJsonFromLink(e.url);
+            let url = null;
+            let timestamp = null;
+            if (jsonData.downloads.server) {
+              url = jsonData.downloads.server.url;
+              timestamp = new Date(jsonData.releaseTime).getTime();
+            }
+            this.data.push({ version: e.id, url, type: e.type, timestamp });
+          }
+          count++;
+          if (count != versions.length) return;
+          this.sort();
+          versionHandler.logger.info("Loaded vanilla versions");
+          resolve();
+        });
+      });
+    },
+    sort() {
+      this.data.sort((a, b) => b.timestamp - a.timestamp);
+    },
+    data: null,
+  },
+  paper: {
+    init() {
+      this.data = versionHandler.data.get().allVersions.paper;
+    },
+    getVersions() {
+      return new Promise(async (resolve) => {
+        const versions = (
+          await versionHandler.getJsonFromLink(
+            "https://api.papermc.io/v2/projects/paper/"
+          )
+        ).versions;
+
+        let count = 0;
+        versions.forEach(async (version) => {
+          const jsonData = await versionHandler.getJsonFromLink(
+            "https://api.papermc.io/v2/projects/paper/versions/" + version
+          );
+          const latest_build = jsonData.builds.pop();
+
+          const thisAllVersions = this.data.find((e) => e.version == version);
+          if (!thisAllVersions)
+            this.data.push({
+              version,
+              latest_build,
+              url: `https://api.papermc.io/v2/projects/paper/versions/${version}/builds/${latest_build}/downloads/paper-${version}-${latest_build}.jar`,
+            });
+          else if (thisAllVersions.latest_build != latest_build) {
+            thisAllVersions.latest_build = latest_build;
+            thisAllVersions.url = `https://api.papermc.io/v2/projects/paper/versions/${version}/builds/${latest_build}/downloads/paper-${version}-${latest_build}.jar`;
+          }
+
+          count++;
+
+          if (count != versions.length) return;
+          this.sort();
+          versionHandler.logger.info("Loaded paper versions");
+          resolve();
+        });
+      });
+    },
+    sort() {
+      this.data.sort(
         (a, b) =>
           parseFloat(b.version.slice(2)) - parseFloat(a.version.slice(2))
       );
-    this.data
-      .get()
-      .allVersions.vanilla.sort((a, b) => b.timestamp - a.timestamp);
-  },
-  getVanillaVersions() {
-    return new Promise(async (resolve) => {
-      const allVersions = this.data.get().allVersions.vanilla;
-      const versions = (
-        await this.getJsonFromLink(
-          "https://launchermeta.mojang.com/mc/game/version_manifest.json"
-        )
-      ).versions;
-
-      let count = 0;
-      versions.forEach(async (e) => {
-        if (!allVersions.find((a) => a.version == e.id)) {
-          const jsonData = await this.getJsonFromLink(e.url);
-          let url = null;
-          let timestamp = null;
-          if (jsonData.downloads.server) {
-            url = jsonData.downloads.server.url;
-            timestamp = new Date(jsonData.releaseTime).getTime();
-          }
-          allVersions.push({ version: e.id, url, type: e.type, timestamp });
-        }
-        count++;
-        if (count != versions.length) return;
-        this.logger.info("Loaded vanilla versions");
-        resolve();
-      });
-    });
-  },
-  getPaperVersions() {
-    return new Promise(async (resolve) => {
-      const allVersions = this.data.get().allVersions.paper;
-      const versions = (
-        await this.getJsonFromLink("https://api.papermc.io/v2/projects/paper/")
-      ).versions;
-
-      let count = 0;
-      versions.forEach(async (version) => {
-        const jsonData = await this.getJsonFromLink(
-          "https://api.papermc.io/v2/projects/paper/versions/" + version
-        );
-        const latest_build = jsonData.builds.pop();
-
-        const thisAllVersions = allVersions.find((e) => e.version == version);
-        if (!thisAllVersions)
-          allVersions.push({
-            version,
-            latest_build,
-            url: `https://api.papermc.io/v2/projects/paper/versions/${version}/builds/${latest_build}/downloads/paper-${version}-${latest_build}.jar`,
-          });
-        else if (thisAllVersions.latest_build != latest_build) {
-          thisAllVersions.latest_build = latest_build;
-          thisAllVersions.url = `https://api.papermc.io/v2/projects/paper/versions/${version}/builds/${latest_build}/downloads/paper-${version}-${latest_build}.jar`;
-        }
-
-        count++;
-
-        if (count != versions.length) return;
-        this.logger.info("Loaded paper versions");
-        resolve();
-      });
-    });
+    },
+    data: null,
   },
   getEditableServerSettings(type, version) {
     const editableSettings = [
@@ -186,5 +203,5 @@ const versionHandler = {
   },
   logger: new Logger(["versionHandler"]),
 };
-versionHandler.data.init();
+
 export default versionHandler;
