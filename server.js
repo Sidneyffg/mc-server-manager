@@ -25,6 +25,8 @@ const websitePath = process.cwd() + "/website";
 app.use("/website", express.static(websitePath));
 
 await versionHandler.getServerVersions();
+import javaHandler from "./handlers/javaHandler.js";
+javaHandler.init();
 
 function statusToColor(s) {
   return [
