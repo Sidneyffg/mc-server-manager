@@ -20,7 +20,7 @@ const versionHandler = {
               "paper": [],
               "vanilla": []
             },
-            "sortedVersions": {
+            "versions": {
               "paper": [],
               "vanilla": []
             }
@@ -41,15 +41,16 @@ const versionHandler = {
     data: null,
   },
   async getServerVersions() {
-    await this.paper.getVersions();
-    await this.vanilla.getVersions();
+    await this.paper.getAllVersions();
+    await this.vanilla.getAllVersions();
     this.data.save();
   },
   vanilla: {
     init() {
-      this.data = versionHandler.data.get().allVersions.vanilla;
+      this.allVersions = versionHandler.data.get().allVersions.vanilla;
+      this.versions = versionHandler.data.get().versions.vanilla;
     },
-    getVersions() {
+    getAllVersions() {
       return new Promise(async (resolve) => {
         const versions = (
           await versionHandler.getJsonFromLink(
@@ -57,36 +58,57 @@ const versionHandler = {
           )
         ).versions;
 
+        let madeChange = false;
         let count = 0;
         versions.forEach(async (e) => {
-          if (!this.data.find((a) => a.version == e.id)) {
+          if (!this.allVersions.find((a) => a.version == e.id)) {
             const jsonData = await versionHandler.getJsonFromLink(e.url);
             let url = null;
-            let timestamp = null;
+            let timestamp = new Date(jsonData.releaseTime).getTime();
             if (jsonData.downloads.server) {
               url = jsonData.downloads.server.url;
-              timestamp = new Date(jsonData.releaseTime).getTime();
             }
-            this.data.push({ version: e.id, url, type: e.type, timestamp });
+            this.allVersions.push({
+              version: e.id,
+              url,
+              type: e.type,
+              timestamp,
+            });
+            madeChange = true;
           }
           count++;
           if (count != versions.length) return;
-          this.sort();
+          if (madeChange) {
+            this.sort();
+            this.genVersions();
+          }
           versionHandler.logger.info("Loaded vanilla versions");
           resolve();
         });
       });
     },
     sort() {
-      this.data.sort((a, b) => b.timestamp - a.timestamp);
+      this.allVersions.sort((a, b) => b.timestamp - a.timestamp);
     },
-    data: null,
+    genVersions() {
+      this.versions.length = 0;
+      let reachedRelease = false;
+      this.allVersions.forEach((versionData) => {
+        if (!versionData.url) return;
+        if (reachedRelease && versionData.type != "release") return;
+        this.versions.push(versionData);
+        if (versionData.type == "release") reachedRelease = true;
+      });
+    },
+    allVersions: null,
+    versions: null,
   },
   paper: {
     init() {
-      this.data = versionHandler.data.get().allVersions.paper;
+      this.allVersions = versionHandler.data.get().allVersions.paper;
+      this.versions = versionHandler.data.get().versions.paper;
     },
-    getVersions() {
+    getAllVersions() {
       return new Promise(async (resolve) => {
         const versions = (
           await versionHandler.getJsonFromLink(
@@ -94,6 +116,7 @@ const versionHandler = {
           )
         ).versions;
 
+        let madeChange = false;
         let count = 0;
         versions.forEach(async (version) => {
           const jsonData = await versionHandler.getJsonFromLink(
@@ -101,34 +124,62 @@ const versionHandler = {
           );
           const latest_build = jsonData.builds.pop();
 
-          const thisAllVersions = this.data.find((e) => e.version == version);
-          if (!thisAllVersions)
-            this.data.push({
+          const thisAllVersions = this.allVersions.find(
+            (e) => e.version == version
+          );
+          if (!thisAllVersions) {
+            this.allVersions.push({
               version,
               latest_build,
               url: `https://api.papermc.io/v2/projects/paper/versions/${version}/builds/${latest_build}/downloads/paper-${version}-${latest_build}.jar`,
             });
-          else if (thisAllVersions.latest_build != latest_build) {
+            madeChange = true;
+          } else if (thisAllVersions.latest_build != latest_build) {
             thisAllVersions.latest_build = latest_build;
             thisAllVersions.url = `https://api.papermc.io/v2/projects/paper/versions/${version}/builds/${latest_build}/downloads/paper-${version}-${latest_build}.jar`;
+            madeChange = true;
           }
 
           count++;
 
           if (count != versions.length) return;
-          this.sort();
+          if (madeChange) {
+            this.sort();
+            this.genVersions();
+          }
           versionHandler.logger.info("Loaded paper versions");
           resolve();
         });
       });
     },
     sort() {
-      this.data.sort(
-        (a, b) =>
-          parseFloat(b.version.slice(2)) - parseFloat(a.version.slice(2))
-      );
+      this.allVersions.sort((a, b) => {
+        const vA = a.version.split(/[.-]+/);
+        const vB = b.version.split(/[.-]+/);
+        let vANum = parseInt(vA[1]);
+        if (vA.length == 3) {
+          let vANums = vA[2].replace(/\D/g, "");
+          if (vA[2].includes("pre")) vANum -= parseInt(vANums) / 100;
+          else vANum += parseInt(vANums) / 10;
+        }
+        let vBNum = parseInt(vB[1]);
+        if (vB.length == 3) {
+          let vBNums = vB[2].replace(/\D/g, "");
+          if (vB[2].includes("pre")) vBNum -= parseInt(vBNums) / 100;
+          else vBNum += parseInt(vBNums) / 10;
+        }
+        return vBNum - vANum;
+      });
     },
-    data: null,
+    genVersions() {
+      this.versions.length = 0;
+      this.allVersions.forEach((e) => {
+        this.versions.push(e);
+      });
+    },
+
+    allVersions: null,
+    versions: null,
   },
   getEditableServerSettings(type, version) {
     const editableSettings = [
