@@ -16,6 +16,17 @@ export async function init() {
   ip = await getIp();
   logger.info("Server ip: " + ip);
 
+  const path = `${process.cwd()}/data`;
+
+  if (!fs.existsSync(path + "/servers")) {
+    fs.mkdirSync(path + "/servers");
+    logger.info("Created server folder");
+  }
+  if (!fs.existsSync(path + "/backups")) {
+    fs.mkdirSync(path + "/backups");
+    logger.info("Created backup folder");
+  }
+
   totalServers = serverData.length;
   for (let i = 0; i < serverData.length; i++) {
     servers.push(new Server(i, serverData[i]));
