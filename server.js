@@ -28,6 +28,7 @@ await versionHandler.getServerVersions();
 import javaHandler from "./handlers/javaHandler.js";
 javaHandler.init();
 
+
 function statusToColor(s) {
   return [
     { s: "online", c: "lime" },

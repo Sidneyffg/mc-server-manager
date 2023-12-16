@@ -4,9 +4,9 @@ import Logger from "./consoleHandler.js";
 
 const javaHandler = {
   async init() {
-    await this.javaChecker.init();
+    await this.checker.init();
   },
-  javaChecker: {
+  checker: {
     async init() {
       if (!fs.existsSync(this.path)) {
         fs.writeFileSync(this.path, "");
@@ -16,15 +16,15 @@ const javaHandler = {
     run() {
       return new Promise((resolve) => {
         const program = spawn(this.path);
-        const paths = [];
+        const versions = [];
         program.stdout.on("data", (data) => {
           data = data.toString().replaceAll("\r", "").trim();
           if (!data.includes("Eclipse Adoptium")) return;
           const version = this.getVersion(data);
-          paths.push({ version, path: data });
+          versions.push({ version, path: data });
         });
         program.on("exit", () => {
-          this.lastCheck = { timestamp: Date.now(), paths };
+          this.lastCheck = { timestamp: Date.now(), versions };
           this.saveLastCheck();
           resolve();
         });
@@ -48,6 +48,32 @@ const javaHandler = {
     },
     path: `${process.cwd()}/data/javaHandler/javaChecker.bat`,
     lastCheck: null,
+  },
+  downloader: {
+    genLinkForVersion(version) {
+      return this.downloadLink.replace("${version}", version);
+    },
+    downloadLink:
+      "https://adoptium.net/en-GB/temurin/releases/?version=${version}&os=windows",
+  },
+  versionChecker: {
+    check(version, type) {
+      switch (type) {
+        case "vanilla":
+          return this.vanilla(version);
+        case "paper":
+          return this.vanilla(version); //paper has same scheme as vanilla
+      }
+    },
+    vanilla(version) {
+      version = this.getBigVersion(version);
+      if (version <= 16) return 11;
+      else if (version == 17) return 16;
+      else return 17;
+    },
+    getBigVersion(version) {
+      return parseInt(version.split(/[.-]+/)[1]);
+    },
   },
   path: `${process.cwd()}/data/javaHandler`,
   logger: new Logger(["javaHandler"]),
