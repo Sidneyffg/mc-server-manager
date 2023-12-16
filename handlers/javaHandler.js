@@ -19,7 +19,11 @@ const javaHandler = {
         const versions = [];
         program.stdout.on("data", (data) => {
           data = data.toString().replaceAll("\r", "").trim();
-          if (!data.includes("Eclipse Adoptium")) return;
+          if (
+            !data.includes("Eclipse Adoptium") &&
+            !data.includes("Eclipse Foundation")
+          )
+            return;
           const version = this.getVersion(data);
           versions.push({ version, path: data });
         });
@@ -31,9 +35,10 @@ const javaHandler = {
       });
     },
     getVersion(path) {
-      const version = parseInt(
-        path.split(`\\Eclipse Adoptium\\jdk-`)[1].split(".")[0]
-      );
+      const name =
+        "Eclipse " +
+        (path.includes("Eclipse Adoptium") ? "Adoptium" : "Foundation");
+      const version = parseInt(path.split(`\\${name}\\jdk-`)[1].split(".")[0]);
       if (isNaN(version)) {
         javaHandler.logger.error(`Failed to find version in path: "${path}"`);
         return -1;
@@ -74,6 +79,18 @@ const javaHandler = {
     getBigVersion(version) {
       return parseInt(version.split(/[.-]+/)[1]);
     },
+  },
+  getJavaPath(version) {
+    const pathObj = this.checker.lastCheck.versions.find(
+      (e) => e.version == version
+    );
+    if (!pathObj) {
+      this.logger.error(
+        `Requested java version ${version}, but it doesn't exist...`
+      );
+      return "java";
+    }
+    return pathObj.path;
   },
   path: `${process.cwd()}/data/javaHandler`,
   logger: new Logger(["javaHandler"]),

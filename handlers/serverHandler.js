@@ -54,18 +54,6 @@ function initServerData() {
   }
 }
 
-export function start(serverNum) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      await servers[serverNum].start();
-    } catch {
-      reject();
-      return;
-    }
-    resolve();
-  });
-}
-
 export function get(serverNum) {
   return servers[serverNum];
 }
@@ -99,10 +87,6 @@ export function newServer(data) {
     }
     fs.writeFileSync(path + "/server.properties", propertiesData);
     fs.writeFileSync(path + "/eula.txt", "eula=true");
-    fs.writeFileSync(
-      path + "/start.bat",
-      `cd "./data/servers/${serverNum}"\njava -Xmx1024M -Xms1024M -jar server.jar nogui`
-    );
     const url = `https://api.papermc.io/v2/projects/paper/versions/${data.version}/builds/${data.build}/downloads/paper-${data.version}-${data.build}.jar`;
     https.get(url, (res) => {
       const filePath = fs.createWriteStream(path + "/server.jar");

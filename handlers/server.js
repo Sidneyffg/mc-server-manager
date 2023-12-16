@@ -9,6 +9,7 @@ import EventHandler from "./server/eventHandler.js";
 import BackupHandler from "./server/backupHandler.js";
 import ShutdownHandler from "./server/shutdownHandler.js";
 import { getServerDirSize } from "./usageHandler.js";
+import javaHandler from "./javaHandler.js";
 
 export default class Server {
   constructor(serverNum, data, status = "offline") {
@@ -51,9 +52,15 @@ export default class Server {
       }
 
       this.consoleLog = "";
-      this.server = spawn(
-        `${process.cwd()}/data/servers/${this.serverNum}/start.bat`
+      const javaPath = javaHandler.getJavaPath(
+        javaHandler.versionChecker.check(this.data.version, "paper")
       );
+      this.server = spawn(
+        `"${process.cwd()}/data/startServer.bat"`,
+        [this.serverNum, `"${javaPath}"`],
+        { shell: true }
+      );
+
       this.setServerStatus("starting");
 
       this.server.stdout.on("data", (data) => {

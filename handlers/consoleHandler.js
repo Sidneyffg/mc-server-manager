@@ -21,6 +21,7 @@ export default class Logger {
   }
 
   #log(color, type, text) {
+    text = text.trim();
     let logPrefix = "";
     this.prefixes.forEach((prefix, idx) => {
       if (idx == 0) {
