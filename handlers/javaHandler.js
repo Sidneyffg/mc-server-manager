@@ -51,6 +51,11 @@ const javaHandler = {
         JSON.stringify(this.lastCheck, null, 2)
       );
     },
+    hasVersion(version) {
+      return (
+        this.lastCheck.versions.find((e) => e.version == version) != undefined
+      );
+    },
     path: `${process.cwd()}/data/javaHandler/javaChecker.bat`,
     lastCheck: null,
   },

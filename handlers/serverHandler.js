@@ -3,7 +3,7 @@ import https from "https";
 import Logger from "./consoleHandler.js";
 import Server from "./server.js";
 import * as listener from "./listener.js";
-
+import javaHandler from "./javaHandler.js";
 const logger = new Logger(["serverHandler"]);
 const servers = [];
 let serverData;
@@ -60,6 +60,14 @@ export function get(serverNum) {
 
 export function newServer(data) {
   return new Promise((resolve) => {
+    const javaVersion = javaHandler.versionChecker.check(
+      data.version,
+      data.type
+    );
+    if (!javaHandler.checker.hasVersion(javaVersion)) {
+      logger.error("Tried to make server without java installed...");
+      return;
+    }
     totalServers++;
 
     serverData.push({
@@ -76,16 +84,7 @@ export function newServer(data) {
     servers.push(new Server(serverNum, serverData[serverNum], "downloading"));
     const currentServer = servers[serverNum];
 
-    let propertiesData = `motd=${data.name}\nquery.port=${data.port}\ndifficulty=${data.difficulty}\nserver-port=${data.port}\nspawn-protection=0\nview-distance=32\nsimulation-distance=32`;
-    if (data.seed != "") {
-      propertiesData += "\nlevel-seed=" + data.seed;
-    }
-    if (data.gamemode == "hardcore") {
-      propertiesData += "\ngamemode=survival\nhardcore=true";
-    } else {
-      propertiesData += "\ngamemode=" + data.gamemode;
-    }
-    fs.writeFileSync(path + "/server.properties", propertiesData);
+    writeServerProperties(currentServer);
     fs.writeFileSync(path + "/eula.txt", "eula=true");
     const url = `https://api.papermc.io/v2/projects/paper/versions/${data.version}/builds/${data.build}/downloads/paper-${data.version}-${data.build}.jar`;
     https.get(url, (res) => {
@@ -110,6 +109,22 @@ export function newServer(data) {
       });
     });
   });
+}
+
+function writeServerProperties(server) {
+  let propertiesData = `motd=${server.data.name}\nquery.port=${server.data.port}\ndifficulty=${server.data.difficulty}\nserver-port=${server.data.port}\nspawn-protection=0\nview-distance=32\nsimulation-distance=32`;
+  if (server.data.seed != "") {
+    propertiesData += "\nlevel-seed=" + server.data.seed;
+  }
+  if (server.data.gamemode == "hardcore") {
+    propertiesData += "\ngamemode=survival\nhardcore=true";
+  } else {
+    propertiesData += "\ngamemode=" + server.data.gamemode;
+  }
+  const path = `${process.cwd()}/data/servers/${
+    server.serverNum
+  }/server.properties`;
+  fs.writeFileSync(path, propertiesData);
 }
 
 function saveOnExit(server) {
