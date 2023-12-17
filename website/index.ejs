@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard</title>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/website/std.js"></script>
     <script src="/website/index.js" defer></script>
     <link rel="stylesheet" href="/website/styles.css" />
     <link
@@ -16,7 +17,7 @@
     <div id="servers">
       <div class="servers-header">
         <h1>Servers</h1>
-        <button onclick="openNewServer()">New server</button>
+        <button onclick="main.openNewServer()">New server</button>
       </div>
       <% for(let i = 0;i<serverData.length;i++){ %>
       <div onclick="window.location.href = '/servers/<%= i %>'">
@@ -44,7 +45,7 @@
       </div>
       <% } %>
     </div>
-    <div id="darkener" onclick="closeNewServer()" style="display: none;"></div>
+    <div id="darkener" onclick="main.closeNewServer()" style="display: none;"></div>
     <div id="std-menu" style="display: none;">
       <h1>New server</h1>
       <form action="/newserver">
@@ -93,27 +94,4 @@
       </form>
     </div>
   </body>
-  <script>
-    const socket = io();
-
-    <% for(let i = 0;i<serverData.length;i++){ %>
-      socket.on("statusUpdate<%= i %>",(status) => changeStatus(<%= i %>,status))
-    <% } %>
-    socket.on("statusUpdate<%= serverData.length %>",() => location.reload())
-
-    function changeStatus(num, status) {
-      const elems = document.getElementsByClassName("server-status-color");
-      elems[num].style.backgroundColor = statusToColor(status);
-    }
-
-    function statusToColor(s) {
-      return [
-       { s: "online", c: "lime" },
-       { s: "offline", c: "grey" },
-       { s: "starting", c: "cyan" },
-       { s: "stopping", c: "cyan" },
-       { s: "downloading", c: "yellow" },
-     ].find((e) => e.s == s).c;
-    }
-  </script>
 </html>
