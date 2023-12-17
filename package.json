@@ -10,8 +10,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "adm-zip": "^0.5.10",
     "ejs": "^3.1.9",
     "express": "^4.18.2",
+    "follow-redirects": "^1.15.3",
     "loadavg-windows": "^1.1.1",
     "node-os-utils": "^1.3.7",
     "socket.io": "^4.7.2",

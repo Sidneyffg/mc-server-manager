@@ -30,7 +30,7 @@ export default class Logger {
         logPrefix += `[${prefix}] `;
       }
     });
-    console.log(color + logPrefix + text);
+    process.stdout.write(color + logPrefix + text + "\n");
   }
 
   #typesToSkip = ["spawnLog"];
@@ -38,6 +38,12 @@ export default class Logger {
   #FgRed = "\x1b[31m";
   #FgYellow = "\x1b[33m";
 }
+
+const defaultLogger = new Logger(["untracked"]);
+//overwrite console.log to my own:)
+console.log = (...args) => {
+  defaultLogger.info(args.join(" "));
+};
 
 /*Reset = "\x1b[0m";
 Bright = "\x1b[1m";

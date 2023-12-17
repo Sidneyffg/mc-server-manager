@@ -2,4 +2,4 @@
 /data/backups/*
 /node_modules
 /data/serverData.json
-/data/javaHandler/lastCheck.json
+/data/javaHandler
