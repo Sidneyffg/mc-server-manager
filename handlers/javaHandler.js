@@ -15,7 +15,6 @@ const javaHandler = {
     this.versions = JSON.parse(
       fs.readFileSync(this.path + "/versions/javaVersions.json")
     );
-    console.log(JSON.stringify(this.versions));
     this.logger.info("Initialized");
   },
 
@@ -53,6 +52,7 @@ const javaHandler = {
         const fileName = zip.getEntries()[0].entryName.replace("/", "");
         javaHandler.versions.push({
           fileName,
+          path: `${this.path}/${fileName}/bin/java.exe`,
           version,
           timestamp: Date.now(),
         });

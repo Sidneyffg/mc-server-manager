@@ -52,9 +52,14 @@ export default class Server {
       }
 
       this.consoleLog = "";
-      const javaPath = javaHandler.getJavaPath(
-        javaHandler.versionChecker.check(this.data.version, "paper")
+      const javaVersion = javaHandler.versionChecker.check(
+        this.data.version,
+        "paper"
       );
+      const javaPath = javaHandler.versions.find(
+        (e) => e.version == javaVersion
+      ).path;
+
       this.server = spawn(
         `"${process.cwd()}/data/startServer.bat"`,
         [this.serverNum, `"${javaPath}"`],

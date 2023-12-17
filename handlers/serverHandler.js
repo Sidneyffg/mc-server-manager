@@ -58,15 +58,14 @@ export function get(serverNum) {
   return servers[serverNum];
 }
 
-export function newServer(data) {
-  return new Promise((resolve) => {
+export function newServer(data, callbackOnFirstStart = null) {
+  return new Promise(async (resolve) => {
     const javaVersion = javaHandler.versionChecker.check(
       data.version,
       data.type
     );
-    if (!javaHandler.checker.hasVersion(javaVersion)) {
-      logger.error("Tried to make server without java installed...");
-      return;
+    if (!javaHandler.versions.find((e) => e.version == javaVersion)) {
+      await javaHandler.downloader.download(javaVersion);
     }
     totalServers++;
 
@@ -75,6 +74,7 @@ export function newServer(data) {
       creationDate: Date.now(),
       dirSize: 0,
     });
+    if (callbackOnFirstStart) callbackOnFirstStart();
 
     const serverNum = serverData.length - 1;
 

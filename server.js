@@ -28,7 +28,6 @@ await versionHandler.getServerVersions();
 import javaHandler from "./handlers/javaHandler.js";
 javaHandler.init();
 
-
 function statusToColor(s) {
   return [
     { s: "online", c: "lime" },
@@ -101,8 +100,9 @@ app.get("/newserver", (req, res) => {
     .allVersions.paper.find((e) => e.version == data.version).latest_build;
 
   const newServerNum = serverHandler.totalServers;
-  serverHandler.newServer(data);
-  setTimeout(() => res.redirect("/servers/" + newServerNum), 500);
+  serverHandler.newServer(data, () => {
+    res.redirect("/servers/" + newServerNum);
+  });
 });
 
 io.on("connection", (socket) => {
