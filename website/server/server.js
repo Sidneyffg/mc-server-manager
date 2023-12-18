@@ -160,6 +160,9 @@ const main = {
         case "offline":
           this._editBtns(false, false);
           break;
+        case "downloading":
+          this._editBtns(false, true);
+          break;
       }
     },
     _editBtns(showActive, setDisabled) {

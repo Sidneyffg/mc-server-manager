@@ -125,9 +125,7 @@ io.on("connection", (socket) => {
   socket.on("startServer", (serverNum) => {
     const server = serverHandler.get(serverNum);
     if (!server || server.status != "offline") return;
-    server.start().catch(() => {
-      socket.emit("startError", "data");
-    });
+    server.start();
   });
 
   socket.on("stopServer", (serverNum) => {
