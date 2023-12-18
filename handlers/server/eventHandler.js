@@ -41,7 +41,10 @@ export default class EventHandler {
           this.data.todo.offline.forEach((todoItem) => {
             switch (todoItem.action) {
               case "saveServerProperties":
-                this.#server.fileHandler.writeFile("properties", todoItem.value);
+                this.#server.fileHandler.writeFile(
+                  "properties",
+                  todoItem.value
+                );
                 break;
             }
           });
@@ -89,11 +92,6 @@ export default class EventHandler {
     if (inc("Whitelist is now turned ")) {
       this.#server.emit("whitelistStatusUpdate", inc(" on"));
     }
-  }
-
-  handleErr(err) {
-    listener.emit("_consoleUpdate" + this.#server.serverNum, err);
-    this.#logger.error(err);
   }
 
   addOnlineTodoItem(data) {

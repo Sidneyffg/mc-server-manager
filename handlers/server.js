@@ -68,27 +68,25 @@ export default class Server {
 
       this.setServerStatus("starting");
 
-      this.server.stdout.on("data", (data) => {
-        data = data.toString().trim().replaceAll("\r", "").split("\n");
-        data.forEach((e) => {
-          e = e.trim();
-          this.eventHandler.handle(e, resolve);
-          this.consoleLog += e + "\n";
-        });
-      });
+      this.server.stdout.on("data", (data) => this.#handleData(data, resolve));
+      this.server.stderr.on("data", (data) => this.#handleData(data, resolve));
       this.server.on("close", () => {
         if (this.status != "online") reject();
         this.setServerStatus("offline");
         this.server = null;
         clearInterval(this.dirSizeIntervalId);
       });
-      this.server.stderr.on("data", (data) => {
-        data = data.toString();
-        this.eventHandler.handleErr(data);
-        this.consoleLog += data;
-      });
 
       this.dirSizeIntervalId = setInterval(() => this.updateDirSize(), 6e5); // every 10 minutes
+    });
+  }
+
+  #handleData(data, resolve) {
+    data = data.toString().trim().replaceAll("\r", "").split("\n");
+    data.forEach((e) => {
+      e = e.trim();
+      this.eventHandler.handle(e, resolve);
+      this.consoleLog += e + "\n";
     });
   }
 
