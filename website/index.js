@@ -8,6 +8,7 @@ const main = {
   },
   darkener: document.getElementById("darkener"),
   newServerMenu: document.getElementById("std-menu"),
+  newServerVersions: document.querySelectorAll(".serverVersion"),
   elems: null,
   closeNewServer() {
     this.darkener.style.display = "none";
@@ -19,6 +20,12 @@ const main = {
   },
   changeStatus(num, status) {
     this.elems[num].style.backgroundColor = this.statusToColor(status);
+  },
+  changeServerType(type) {
+    for (const e of this.newServerVersions) {
+      if(e.name == "version" + type) e.style.display = "block"
+      else e.style.display = "none"
+    }
   },
   statusToColor(s) {
     return [

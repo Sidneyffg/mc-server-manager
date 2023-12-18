@@ -28,9 +28,8 @@ const versionHandler = {
         );
       }
       this.data = JSON.parse(fs.readFileSync(this.path));
-    },
-    get() {
-      return this.data;
+      this.allVersions = this.data.allVersions;
+      this.versions = this.data.versions;
     },
     async save() {
       fs.writeFile(this.path, JSON.stringify(this.data, null, 2), (err) => {
@@ -39,6 +38,8 @@ const versionHandler = {
     },
     path: `${process.cwd()}/data/versionHandler.json`,
     data: null,
+    versions: null,
+    allVersions: null,
   },
   async getServerVersions() {
     await this.paper.getAllVersions();
@@ -47,8 +48,8 @@ const versionHandler = {
   },
   vanilla: {
     init() {
-      this.allVersions = versionHandler.data.get().allVersions.vanilla;
-      this.versions = versionHandler.data.get().versions.vanilla;
+      this.allVersions = versionHandler.data.allVersions.vanilla;
+      this.versions = versionHandler.data.versions.vanilla;
     },
     getAllVersions() {
       return new Promise(async (resolve) => {
@@ -105,8 +106,8 @@ const versionHandler = {
   },
   paper: {
     init() {
-      this.allVersions = versionHandler.data.get().allVersions.paper;
-      this.versions = versionHandler.data.get().versions.paper;
+      this.allVersions = versionHandler.data.allVersions.paper;
+      this.versions = versionHandler.data.versions.paper;
     },
     getAllVersions() {
       return new Promise(async (resolve) => {

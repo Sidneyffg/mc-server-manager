@@ -48,7 +48,7 @@ app.get("/servers", (req, res) => {
     serverData.push(serverHandler.get(i));
   }
   res.render(websitePath + "/index.ejs", {
-    versions: versionHandler.data.get().allVersions,
+    versions: versionHandler.data.versions,
     serverData,
     statusToColor,
   });
@@ -95,12 +95,26 @@ app.get("/servers/*", (req, res) => {
 
 app.get("/newserver", (req, res) => {
   const data = req.query;
-  data.build = versionHandler.data
-    .get()
-    .allVersions.paper.find((e) => e.version == data.version).latest_build;
+  const type = data.type;
+  const version = data["version" + type];
+  const versionData = Object.assign(
+    versionHandler.data.versions[type].find((e) => e.version == version)
+  );
+  versionData.type = type;
+  versionData.build = versionData.latest_build;
+  delete versionData.latest_build;
+
+  const serverData = {
+    versionData,
+    gamemode: data.gamemode,
+    difficulty: data.difficulty,
+    seed: data.seed,
+    port: data.port,
+    name: data.name,
+  };
 
   const newServerNum = serverHandler.totalServers;
-  serverHandler.newServer(data, () => {
+  serverHandler.newServer(serverData, () => {
     res.redirect("/servers/" + newServerNum);
   });
 });

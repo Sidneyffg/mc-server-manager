@@ -26,7 +26,7 @@
         />
         <div class="server-data">
           <h2><%= serverData[i].data.name %></h2>
-          <p><%= serverData[i].data.type %> <%= serverData[i].data.version %></p>
+          <p><%= serverData[i].data.versionData.type %> <%= serverData[i].data.versionData.version %></p>
         </div>
         <div class="server-status">
           <div class="server-status-color" style="background-color:<%= statusToColor(serverData[i].status) %>;"></div>
@@ -54,17 +54,22 @@
         <div>
           <div>
             <p>Type</p>
-            <select name="type">
-              <option value="paper">Paper</option>
+            <select name="type" onchange="main.changeServerType(this.value)">
+              <% const versionsArr = Object.keys(versions) %>
+              <% for(let i = 0;i<versionsArr.length;i++){ %>
+              <option value="<%= versionsArr[i] %>"><%= versionsArr[i] %></option>
+              <% } %>
             </select>
           </div>
           <div>
             <p>Version</p>
-            <select name="version">
-              <% for(let i = 0;i<versions.paper.length;i++){ %>
-              <option value="<%= versions.paper[i].version %>"><%= versions.paper[i].version %></option>
-              <% } %>
+            <% for(let j = 0;j<versionsArr.length;j++){ %>
+            <select class="serverVersion" name="version<%= versionsArr[j] %>" <%= j==0?"": `style=display:none;` %>>
+                <% for(let i = 0;i<versions[versionsArr[j]].length;i++){ %>
+                <option value="<%= versions[versionsArr[j]][i].version %>"><%= versions[versionsArr[j]][i].version %></option>
+                <% } %>
             </select>
+            <% } %>
           </div>
         </div>
         <div>

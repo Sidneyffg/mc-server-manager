@@ -83,16 +83,18 @@
         </div>
         <div>
           <p>Server type</p>
-          <p><%= serverData.data.type %></p>
+          <p><%= serverData.data.versionData.type %></p>
         </div>
         <div>
           <p>Server version</p>
-          <p><%= serverData.data.version %></p>
+          <p><%= serverData.data.versionData.version %></p>
         </div>
+        <% if(serverData.data.versionData.build){ %>
         <div>
           <p>Server build</p>
-          <p><%= serverData.data.build %></p>
+          <p><%= serverData.data.versionData.build %></p>
         </div>
+        <% } %>
       </div>
       <div id="overview-console">
         <p id="server-console">

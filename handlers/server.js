@@ -53,7 +53,7 @@ export default class Server {
 
       this.consoleLog = "";
       const javaVersion = javaHandler.versionChecker.check(
-        this.data.version,
+        this.data.versionData.version,
         "paper"
       );
       const javaPath = javaHandler.versions.find(

@@ -61,20 +61,21 @@ export function get(serverNum) {
 export function newServer(data, callbackOnFirstStart = null) {
   return new Promise(async (resolve) => {
     const javaVersion = javaHandler.versionChecker.check(
-      data.version,
-      data.type
+      data.versionData.version,
+      data.versionData.type
     );
     if (!javaHandler.versions.find((e) => e.version == javaVersion)) {
       await javaHandler.downloader.download(javaVersion);
     }
-    totalServers++;
 
     serverData.push({
-      ...data,
+      name: data.name,
+      versionData: data.versionData,
       creationDate: Date.now(),
       dirSize: 0,
     });
-    if (callbackOnFirstStart) callbackOnFirstStart();
+
+    totalServers++;
 
     const serverNum = serverData.length - 1;
 
@@ -84,9 +85,11 @@ export function newServer(data, callbackOnFirstStart = null) {
     servers.push(new Server(serverNum, serverData[serverNum], "downloading"));
     const currentServer = servers[serverNum];
 
+    if (callbackOnFirstStart) callbackOnFirstStart();
+
     writeServerProperties(currentServer);
     fs.writeFileSync(path + "/eula.txt", "eula=true");
-    const url = `https://api.papermc.io/v2/projects/paper/versions/${data.version}/builds/${data.build}/downloads/paper-${data.version}-${data.build}.jar`;
+    const url = data.versionData.url;
     https.get(url, (res) => {
       const filePath = fs.createWriteStream(path + "/server.jar");
       res.pipe(filePath);
@@ -112,7 +115,7 @@ export function newServer(data, callbackOnFirstStart = null) {
 }
 
 function writeServerProperties(server) {
-  let propertiesData = `motd=${server.data.name}\nquery.port=${server.data.port}\ndifficulty=${server.data.difficulty}\nserver-port=${server.data.port}\nspawn-protection=0\nview-distance=32\nsimulation-distance=32`;
+  let propertiesData = `motd=${server.data.name}\nquery.port=${server.data.versionData.port}\ndifficulty=${server.data.difficulty}\nserver-port=${server.data.versionData.port}\nspawn-protection=0\nview-distance=32\nsimulation-distance=32`;
   if (server.data.seed != "") {
     propertiesData += "\nlevel-seed=" + server.data.seed;
   }
