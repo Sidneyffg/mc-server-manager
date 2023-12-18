@@ -57,7 +57,12 @@ const main = {
 
       this._handleMessageType(message);
 
-      message = message.replaceAll("\n", "<br>");
+      message = message
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+
       const data = `<span class="span-color-${this.currentType}">${message}</span>`;
       this._appendData(data);
 

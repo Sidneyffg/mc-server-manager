@@ -69,9 +69,12 @@ export default class Server {
       this.setServerStatus("starting");
 
       this.server.stdout.on("data", (data) => {
-        data = data.toString();
-        this.eventHandler.handle(data, resolve);
-        this.consoleLog += data;
+        data = data.toString().trim().replaceAll("\r", "").split("\n");
+        data.forEach((e) => {
+          e = e.trim();
+          this.eventHandler.handle(e, resolve);
+          this.consoleLog += e + "\n";
+        });
       });
       this.server.on("close", () => {
         if (this.status != "online") reject();

@@ -101,10 +101,10 @@
           <% if(serverData.status != "offline"){ %>
           <% const serverLogArr = serverData.consoleLog.split("\n") %>
             <% let currentType = "INFO"%>
-             <% for( let i = 0; i < serverLogArr.length; i++ ) { %>
+             <% for( let i = 0; i < serverLogArr.length - 1; i++ ) { %>
               <% const type = /\[[0-9]{2}\:[0-9]{2}\:[0-9]{2} ([A-Z]{4,5})|\]:/m.exec(serverLogArr[i]); %>
               <% if (type) currentType = type[1]; %>
-                <span class="span-color-<%= currentType %>"><%= serverLogArr[i] %><br></span>
+                <span class="span-color-<%= currentType %>"><%= serverLogArr[i] %></span>
               <% } %>
               <% }else{ %>
               <span class="span-color-INFO">Server offline...</span>

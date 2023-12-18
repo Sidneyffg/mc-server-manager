@@ -384,6 +384,9 @@ label.disabled {
 
 #server-console > span {
   font-family: monospace;
+  width: 100%;
+  display: block;
+  line-height: 1.5em;
 }
 
 .span-color-INFO {
