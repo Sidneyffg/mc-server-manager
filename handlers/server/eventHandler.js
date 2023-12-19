@@ -52,46 +52,53 @@ export default class EventHandler {
           break;
       }
     });
+    this.serverType = this.#server.data.versionData.type;
   }
 
-  handle(data, resolve) {
-    listener.emit("_consoleUpdate" + this.#server.serverNum, data);
-    const inc = data.includes.bind(data);
+  handle(message, resolve) {
+    listener.emit("_consoleUpdate" + this.#server.serverNum, message);
+    message = this.filterTimestamp(message);
+    if (!message) return;
+    if (this.isChatMessage(message)) return;
 
-    if (inc("Timings Reset")) {
-      this.#server.setServerStatus("online");
-      resolve();
-    }
-    if (inc("UUID of player ")) {
-      const name = data.split(" ")[5];
-      this.#server.emit("playerConnected", name);
-    }
-    if (inc(" lost connection: ")) {
-      const name = data.split(" ")[2];
-      this.#server.emit("playerDisconnected", name);
-    }
-    if (inc(" a server operator")) {
-      const name = data.split(" ")[4];
-      if (inc(" no longer ")) {
-        this.#server.emit("playerDeOpped", name);
-      } else {
-        this.#server.emit("playerOpped", name);
-      }
-    }
+    let res = this.checkforEvent(message);
+    if (!res) return;
 
-    if (inc("to the whitelist")) {
-      const name = data.split(" ")[4];
-      this.#server.emit("playerAddedToWhitelist", name);
+    switch (res.event) {
+      case "started":
+        this.#server.setServerStatus("online");
+        resolve();
+        break;
+      case "joined":
+        this.#server.emit("playerConnected", res.data.username);
+        break;
+      case "left":
+        this.#server.emit("playerDisconnected", res.data.username);
+        break;
     }
+  }
 
-    if (inc("from the whitelist")) {
-      const name = data.split(" ")[4];
-      this.#server.emit("playerRemovedFromWhitelist", name);
-    }
+  checkforEvent(message) {
+    let res = null;
+    this.checker[this.serverType].forEach((e) => {
+      if (res) return;
+      const reg = e.match.exec(message);
+      if (!reg) return;
+      if (!e.data) return (res = { event: e.event });
+      const data = {};
+      e.data.forEach((a, idx) => (data[a] = reg[idx + 1]));
+      res = { event: e.event, data };
+    });
+    return res;
+  }
 
-    if (inc("Whitelist is now turned ")) {
-      this.#server.emit("whitelistStatusUpdate", inc(" on"));
-    }
+  filterTimestamp(message) {
+    const reg = /\[[0-9:]{8} (?:INFO|WARN|ERROR)\]: (.*)/.exec(message);
+    if (!reg) return null;
+    return reg[1];
+  }
+  isChatMessage(message) {
+    return message.match(/^<[^ ]*>/m);
   }
 
   addOnlineTodoItem(data) {
@@ -104,6 +111,26 @@ export default class EventHandler {
       "Added todo item:\n" + JSON.stringify(this.settings, null, 2)
     );
   }
+
+  checker = {
+    paper: [
+      {
+        match: /Done \([0-9.]*s\)! For help, type "help"/,
+        event: "started",
+      },
+      {
+        match: /\[38;2;255;255;85m([^ ]*) joined the game/,
+        event: "joined",
+        data: ["username"],
+      },
+      {
+        match: /([^ ]*) lost connection: (.*)/,
+        event: "left",
+        data: ["username", "reason"],
+      },
+    ],
+    vanilla: {},
+  };
 
   #logger;
   #server;

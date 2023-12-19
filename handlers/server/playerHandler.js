@@ -20,13 +20,6 @@ export default class PlayerHandler {
         this.onlinePlayers
       );
       this.#logger.info(`${playerName} connected to server`);
-
-      const playerData = this.allPlayers.find((e) => e.name == playerName);
-      if (playerData) {
-        playerData.lastJoin = Date.now();
-        return;
-      }
-      this.allPlayers.push({ name: playerName, lastJoin: Date.now() });
     });
 
     server.on("playerDisconnected", (playerName) => {
@@ -78,7 +71,10 @@ export default class PlayerHandler {
     const allPlayers = this.fileHandler.readFile("usercache");
 
     this.allPlayers = allPlayers.map((e) => e.name);
-    listener.emit("_allPlayersUpdate" + this.#server.serverNum, this.allPlayers);
+    listener.emit(
+      "_allPlayersUpdate" + this.#server.serverNum,
+      this.allPlayers
+    );
   }
 
   #updateWhitelistedPlayers() {

@@ -4,8 +4,8 @@
     "paper": [
       {
         "version": "1.20.4",
-        "latest_build": 332,
-        "url": "https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/332/downloads/paper-1.20.4-332.jar"
+        "latest_build": 334,
+        "url": "https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/334/downloads/paper-1.20.4-334.jar"
       },
       {
         "version": "1.20.2",
@@ -194,6 +194,12 @@
       }
     ],
     "vanilla": [
+      {
+        "version": "23w51b",
+        "url": "https://piston-data.mojang.com/v1/objects/d443ec98f3f3ee2dc92e0788d6d83d74844feb4f/server.jar",
+        "type": "snapshot",
+        "timestamp": 1702913954000
+      },
       {
         "version": "23w51a",
         "url": "https://piston-data.mojang.com/v1/objects/e44e1d8c34f3020b0485ddd1436e91134b7de9a3/server.jar",
@@ -4550,8 +4556,8 @@
     "paper": [
       {
         "version": "1.20.4",
-        "latest_build": 332,
-        "url": "https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/332/downloads/paper-1.20.4-332.jar"
+        "latest_build": 334,
+        "url": "https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/334/downloads/paper-1.20.4-334.jar"
       },
       {
         "version": "1.20.2",
@@ -4740,6 +4746,12 @@
       }
     ],
     "vanilla": [
+      {
+        "version": "23w51b",
+        "url": "https://piston-data.mojang.com/v1/objects/d443ec98f3f3ee2dc92e0788d6d83d74844feb4f/server.jar",
+        "type": "snapshot",
+        "timestamp": 1702913954000
+      },
       {
         "version": "23w51a",
         "url": "https://piston-data.mojang.com/v1/objects/e44e1d8c34f3020b0485ddd1436e91134b7de9a3/server.jar",

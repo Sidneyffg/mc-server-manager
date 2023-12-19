@@ -71,7 +71,7 @@ export default class Server {
       this.server.stdout.on("data", (data) => this.#handleData(data, resolve));
       this.server.stderr.on("data", (data) => this.#handleData(data, resolve));
       this.server.on("close", () => {
-        if (this.status != "online") reject();
+        reject(); //wil only work if hasn't resolved yet
         this.setServerStatus("offline");
         this.server = null;
         clearInterval(this.dirSizeIntervalId);
