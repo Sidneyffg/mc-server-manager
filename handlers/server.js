@@ -12,19 +12,20 @@ import { getServerDirSize } from "./usageHandler.js";
 import javaHandler from "./javaHandler.js";
 
 export default class Server {
-  constructor(serverNum, data, status = "offline") {
-    this.serverNum = serverNum;
+  constructor(data, status = "offline") {
+    this.serverNum = data.num;
     this.data = data;
-    this.path = `${process.cwd()}/data/servers/${serverNum}`;
+    this.dirPath = `${process.cwd()}/data/servers/${this.data.id}`;
+    this.path = `${this.dirPath}/server`;
     this.status = status;
-    this.#logger = new Logger(["serverHandler", `server ${serverNum}`]);
+    this.#logger = new Logger(["serverHandler", `server ${this.serverNum}`]);
 
     this.#checkServer();
     this.#initHandlers();
   }
 
   #checkServer() {
-    if (!fs.existsSync(this.path))
+    if (!fs.existsSync(this.dirPath))
       this.#logger.exitWithError("Failed to find server dir");
   }
 
@@ -62,7 +63,7 @@ export default class Server {
 
       this.server = spawn(
         `"${process.cwd()}/data/startServer.bat"`,
-        [this.serverNum, `"${javaPath}"`],
+        [this.data.id, `"${javaPath}"`],
         { shell: true }
       );
 
@@ -91,7 +92,7 @@ export default class Server {
   }
 
   async updateDirSize() {
-    const dirSize = await getServerDirSize(this.serverNum);
+    const dirSize = await getServerDirSize(this.data.id);
     this.data.dirSize = dirSize;
     listener.emit("_serverDirSizeUpdate" + this.serverNum, dirSize);
     this.#logger.info("Updated server dir size");
@@ -122,16 +123,9 @@ export default class Server {
 
   deleteFiles() {
     return new Promise((resolve) => {
-      fs.rm(this.path, { recursive: true }, (err) => {
-        if (err) throw err;
-        fs.rm(
-          `${process.cwd()}/data/backups/${this.serverNum}`,
-          { recursive: true },
-          (err) => {
-            if (err) throw err;
-            resolve();
-          }
-        );
+      fs.rm(this.dirPath, { recursive: true }, (err) => {
+        if (err) this.#logger.error("Failed to delete server files:\n" + err);
+        resolve();
       });
     });
   }

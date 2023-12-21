@@ -59,7 +59,7 @@ const convertBytes = function (bytes) {
   return (bytes / Math.pow(1024, i)).toFixed(1) + sizes[i];
 };
 
-const getTotalSize = function (directoryPath) {
+function getTotalSize(directoryPath) {
   const arrayOfFiles = getAllFiles(directoryPath);
 
   let totalSize = 0;
@@ -69,11 +69,11 @@ const getTotalSize = function (directoryPath) {
   });
 
   return convertBytes(totalSize);
-};
+}
 
-export async function getServerDirSize(serverNum) {
+export async function getServerDirSize(id) {
   const serverDirSize = getTotalSize(
-    path.join(process.cwd(), "data/servers/" + serverNum)
+    path.join(process.cwd(), "data/servers/", id, "/server")
   );
   return serverDirSize;
 }

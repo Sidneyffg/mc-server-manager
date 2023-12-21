@@ -103,13 +103,12 @@ export default class EventHandler {
 
   addOnlineTodoItem(data) {
     this.data.todo.online.push(new TodoItem(data));
+    this.#logger.info(`Added online todo item: ${data.action}`);
   }
 
   addOfflineTodoItem(data) {
     this.data.todo.offline.push(new TodoItem(data));
-    this.#logger.info(
-      "Added todo item:\n" + JSON.stringify(this.settings, null, 2)
-    );
+    this.#logger.info(`Added offline todo item: ${data.action}`);
   }
 
   timestampReg = {

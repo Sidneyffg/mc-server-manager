@@ -5,6 +5,7 @@ import Server from "./server.js";
 import * as listener from "./listener.js";
 import javaHandler from "./javaHandler.js";
 import versionHandler from "./versionHandler.js";
+import { v4 as uuidV4 } from "uuid";
 const logger = new Logger(["serverHandler"]);
 const servers = [];
 let serverData;
@@ -12,6 +13,7 @@ export let ip;
 export function totalServers() {
   return servers.length;
 }
+console.log();
 export async function init() {
   logger.info("Initializing...");
   initServerData();
@@ -24,10 +26,6 @@ export async function init() {
   if (!fs.existsSync(path + "/servers")) {
     fs.mkdirSync(path + "/servers");
     logger.info("Created server folder");
-  }
-  if (!fs.existsSync(path + "/backups")) {
-    fs.mkdirSync(path + "/backups");
-    logger.info("Created backup folder");
   }
 
   for (let i = 0; i < serverData.length; i++) {
@@ -69,7 +67,10 @@ export function get(serverNum) {
 
 export function newServer(data, callbackOnFirstStart = null) {
   return new Promise(async (resolve, reject) => {
-    const path = `${process.cwd()}/data/servers/${serverData.length}`;
+    data.id = uuidV4();
+    let path = `${process.cwd()}/data/servers/${data.id}`;
+    fs.mkdirSync(path);
+    path += "/server";
     fs.mkdirSync(path);
     const currentServer = addServerObject(data);
 
@@ -81,6 +82,7 @@ export function newServer(data, callbackOnFirstStart = null) {
     writeServerProperties(data, path);
     const url = versionHandler.getVersionData(data.type, data.version).url;
     await downloadServerJar(path, url);
+    fs.writeFileSync(path + "/eula.txt", "eula=true");
 
     await currentServer.start().catch((e) => {
       logger.error("Failed to create server...");
@@ -93,6 +95,7 @@ export function newServer(data, callbackOnFirstStart = null) {
     await currentServer.updateDirSize();
     saveServerData();
     saveOnExit(currentServer);
+    resolve();
   });
 }
 
@@ -104,18 +107,17 @@ function addServerObject(data) {
   const serverNum = serverData.length;
   serverData.push({
     ...data,
+    num: serverNum,
     creationDate: Date.now(),
     dirSize: 0,
   });
-  const server = new Server(serverNum, serverData[serverNum], "downloading");
+  const server = new Server(serverData[serverNum], "downloading");
   servers.push(server);
   return server;
 }
 
 function downloadServerJar(path, url) {
   return new Promise((resolve) => {
-    fs.writeFileSync(path + "/eula.txt", "eula=true");
-
     https.get(url, (res) => {
       const filePath = fs.createWriteStream(path + "/server.jar");
       res.pipe(filePath);

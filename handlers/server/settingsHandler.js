@@ -73,7 +73,6 @@ export default class SettingsHandler {
       properties += `${setting}=${value}\r\n`;
     }
     if (this.#server.status !== "offline") {
-      this.#logger.error("Added offline todo item...");
       this.#server.eventHandler.addOfflineTodoItem({
         action: "saveServerProperties",
         value: properties,

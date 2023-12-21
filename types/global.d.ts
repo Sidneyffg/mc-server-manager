@@ -8,6 +8,8 @@ declare namespace serverHandler {
     type: string,
     version: string,
     port: number,
+    id?: string,
+    num?: number,
     settings?: {
       [x:string]:string
     }

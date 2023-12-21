@@ -22,7 +22,7 @@ export default class BackupHandler {
       };
       this.data = this.#server.data.backupHandler;
     }
-    this.path = `${process.cwd()}/data/backups/${this.#server.serverNum}`;
+    this.path = `${this.#server.dirPath}/backups`;
     this.#checkBackupFolder();
 
     this.#server.on("statusUpdate", (newStatus) => {
@@ -142,7 +142,7 @@ export default class BackupHandler {
     fs.rm(path, { recursive: true }, (err) => {
       if (err) {
         this.#logger.error("Failed to delete backup");
-        this.#logger.error("->" + err);
+        this.#logger.error("-> " + err);
       }
     });
     this.data.backups.splice(backupIdx, 1);
