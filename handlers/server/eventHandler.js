@@ -52,7 +52,7 @@ export default class EventHandler {
           break;
       }
     });
-    this.serverType = this.#server.data.versionData.type;
+    this.serverType = this.#server.data.type;
   }
 
   handle(message, resolve) {
@@ -93,7 +93,7 @@ export default class EventHandler {
   }
 
   filterTimestamp(message) {
-    const reg = /\[[0-9:]{8} (?:INFO|WARN|ERROR)\]: (.*)/.exec(message);
+    const reg = this.timestampReg[this.serverType].exec(message);
     if (!reg) return null;
     return reg[1];
   }
@@ -112,6 +112,11 @@ export default class EventHandler {
     );
   }
 
+  timestampReg = {
+    paper: /\[[0-9:]{8} (?:INFO|WARN|ERROR)\]: (.*)/,
+    vanilla: /^\[.*?\] \[.*?\]: (.*)/m,
+  };
+
   checker = {
     paper: [
       {
@@ -129,7 +134,22 @@ export default class EventHandler {
         data: ["username", "reason"],
       },
     ],
-    vanilla: {},
+    vanilla: [
+      {
+        match: /Done \([0-9.]*s\)! For help, type "help"/,
+        event: "started",
+      },
+      {
+        match: /([^ ]*) joined the game/,
+        event: "joined",
+        data: ["username"],
+      },
+      {
+        match: /([^ ]*) lost connection: (.*)/,
+        event: "left",
+        data: ["username", "reason"],
+      },
+    ],
   };
 
   #logger;

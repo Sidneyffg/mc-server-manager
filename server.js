@@ -44,7 +44,7 @@ app.get("/", (req, res) => {
 
 app.get("/servers", (req, res) => {
   let serverData = [];
-  for (let i = 0; i < serverHandler.totalServers; i++) {
+  for (let i = 0; i < serverHandler.totalServers(); i++) {
     serverData.push(serverHandler.get(i));
   }
   res.render(websitePath + "/index.ejs", {
@@ -59,7 +59,7 @@ app.get("/servers/*/*", (req, res) => {
   const pageType = req.url.split("/")[3];
   if (
     isNaN(serverNum) ||
-    serverNum >= serverHandler.totalServers ||
+    serverNum >= serverHandler.totalServers() ||
     serverNum < 0
   ) {
     res.redirect("/servers");
@@ -81,7 +81,7 @@ app.get("/servers/*", (req, res) => {
 
   if (
     isNaN(serverNum) ||
-    serverNum >= serverHandler.totalServers ||
+    serverNum >= serverHandler.totalServers() ||
     serverNum < 0
   ) {
     res.redirect("/servers");
@@ -97,26 +97,27 @@ app.get("/newserver", (req, res) => {
   const data = req.query;
   const type = data.type;
   const version = data["version" + type];
-  const versionData = Object.assign(
-    versionHandler.data.versions[type].find((e) => e.version == version)
-  );
-  versionData.type = type;
-  versionData.build = versionData.latest_build;
-  delete versionData.latest_build;
 
   const serverData = {
-    versionData,
-    gamemode: data.gamemode,
-    difficulty: data.difficulty,
-    seed: data.seed,
     port: data.port,
     name: data.name,
+    type,
+    version,
+    settings: {
+      gamemode: data.gamemode,
+      difficulty: data.difficulty,
+      seed: data.seed,
+    },
   };
 
-  const newServerNum = serverHandler.totalServers;
-  serverHandler.newServer(serverData, () => {
-    res.redirect("/servers/" + newServerNum);
-  });
+  const newServerNum = serverHandler.totalServers();
+  serverHandler
+    .newServer(serverData, () => {
+      res.redirect("/servers/" + newServerNum);
+    })
+    .catch((e) => {
+      res.redirect("/servers");
+    });
 });
 
 io.on("connection", (socket) => {

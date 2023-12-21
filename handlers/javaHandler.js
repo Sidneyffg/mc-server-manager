@@ -17,8 +17,33 @@ const javaHandler = {
     );
     this.logger.info("Initialized");
   },
-
+  /**
+   * Gets Java version based on server type and version.
+   * @param {string} serverType
+   * @param {string} serverVersion
+   * @returns {javaHandler.version}
+   */
+  getVersion(serverType, serverVersion) {
+    return this.versionChecker.check(serverVersion, serverType);
+  },
+  /**
+   * Downloads java version if it is missing.
+   * @param {javaHandler.version} version
+   * @returns {Promise<boolean>} Did Java download.
+   */
+  downloadIfMissing(version) {
+    return new Promise(async (resolve) => {
+      if (this.versions.find((e) => e.version == version))
+        return resolve(false);
+      await this.downloader.download(version);
+      resolve(true);
+    });
+  },
   downloader: {
+    /**
+     * @param {javaHandler.version} version
+     * @returns {Promise<void>}
+     */
     download(version) {
       return new Promise(async (resolve, reject) => {
         if (!this.downloadLinks.find((e) => e.version == version)) {
@@ -33,6 +58,11 @@ const javaHandler = {
         resolve();
       });
     },
+    /**
+     * @param {string} url
+     * @param {string} path
+     * @returns {Promise<void>}
+     */
     downloadZip(url, path) {
       return new Promise((resolve) => {
         https.get(url, (res) => {
@@ -46,6 +76,13 @@ const javaHandler = {
         });
       });
     },
+    /**
+     * Unzips Java zip file from path to dest.
+     * @param {string} path
+     * @param {string} dest
+     * @param {javaHandler.version} version
+     * @returns {Promise<void>}
+     */
     unzip(path, dest, version) {
       return new Promise((resolve) => {
         const zip = new AdmZip(path);
@@ -62,12 +99,20 @@ const javaHandler = {
         resolve();
       });
     },
+    /**
+     * Asynchronously deletes temporary Java zip file.
+     * @param {string} path
+     */
     deleteZip(path) {
       fs.unlink(path, (err) => {
         if (err) javaHandler.logger.error("Failed to delete java.zip");
         else javaHandler.logger.info("Deleted java.zip");
       });
     },
+    /**
+     * Deletes files and data of Java.
+     * @param {javaHandler.version} version
+     */
     delete(version) {
       const obj = javaHandler.versions.find((e) => e.version == version);
       if (!obj) {
@@ -106,6 +151,11 @@ const javaHandler = {
     path: `${process.cwd()}/data/javaHandler/versions`,
   },
   versionChecker: {
+    /**
+     * @param {string} version - Server version
+     * @param {string} type - Server type
+     * @returns {javaHandler.version}
+     */
     check(version, type) {
       switch (type) {
         case "vanilla":
@@ -114,16 +164,29 @@ const javaHandler = {
           return this.vanilla(version); //paper has same scheme as vanilla
       }
     },
+    /**
+     * @param {string} version
+     * @returns {javaHandler.version}
+     */
     vanilla(version) {
       version = this.getBigVersion(version);
       if (version <= 16) return 11;
       else if (version == 17) return 16;
       else return 17;
     },
+    /**
+     * @param {string} version - Server version
+     * @returns {number} Big version of server ("1.16.3" -> 16)
+     */
     getBigVersion(version) {
       return parseInt(version.split(/[.-]+/)[1]);
     },
   },
+  /**
+   * Gets the download path of the requested java version
+   * @param {javaHandler.version} version
+   * @returns {string} url
+   */
   getJavaPath(version) {
     const pathObj = this.checker.lastCheck.versions.find(
       (e) => e.version == version

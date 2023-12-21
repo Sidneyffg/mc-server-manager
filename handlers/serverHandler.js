@@ -4,11 +4,14 @@ import Logger from "./consoleHandler.js";
 import Server from "./server.js";
 import * as listener from "./listener.js";
 import javaHandler from "./javaHandler.js";
+import versionHandler from "./versionHandler.js";
 const logger = new Logger(["serverHandler"]);
 const servers = [];
 let serverData;
-export let totalServers;
 export let ip;
+export function totalServers() {
+  return servers.length;
+}
 export async function init() {
   logger.info("Initializing...");
   initServerData();
@@ -27,7 +30,6 @@ export async function init() {
     logger.info("Created backup folder");
   }
 
-  totalServers = serverData.length;
   for (let i = 0; i < serverData.length; i++) {
     servers.push(new Server(i, serverData[i]));
     saveOnExit(servers[i]);
@@ -58,81 +60,111 @@ export function get(serverNum) {
   return servers[serverNum];
 }
 
+/**
+ * Creates a new Minecraft server.
+ * @param {serverHandler.data} data
+ * @param {() => void} callbackOnFirstStart
+ * @returns {Promise<void>}
+ */
+
 export function newServer(data, callbackOnFirstStart = null) {
-  return new Promise(async (resolve) => {
-    const javaVersion = javaHandler.versionChecker.check(
-      data.versionData.version,
-      data.versionData.type
-    );
-    if (!javaHandler.versions.find((e) => e.version == javaVersion)) {
-      await javaHandler.downloader.download(javaVersion);
-    }
-
-    serverData.push({
-      name: data.name,
-      versionData: data.versionData,
-      creationDate: Date.now(),
-      dirSize: 0,
-    });
-
-    totalServers++;
-
-    const serverNum = serverData.length - 1;
-
-    const path = `${process.cwd()}/data/servers/${serverNum}`;
+  return new Promise(async (resolve, reject) => {
+    const path = `${process.cwd()}/data/servers/${serverData.length}`;
     fs.mkdirSync(path);
-
-    servers.push(new Server(serverNum, serverData[serverNum], "downloading"));
-    const currentServer = servers[serverNum];
+    const currentServer = addServerObject(data);
 
     if (callbackOnFirstStart) callbackOnFirstStart();
 
-    writeServerProperties(currentServer);
+    const javaVersion = javaHandler.getVersion(data.type, data.version);
+    await javaHandler.downloadIfMissing(javaVersion);
+
+    writeServerProperties(data, path);
+    const url = versionHandler.getVersionData(data.type, data.version).url;
+    await downloadServerJar(path, url);
+
+    await currentServer.start().catch((e) => {
+      logger.error("Failed to create server...");
+      logger.error(e);
+      reject();
+      return;
+    });
+
+    await currentServer.shutdownHandler.stopServer();
+    await currentServer.updateDirSize();
+    saveServerData();
+    saveOnExit(currentServer);
+  });
+}
+
+/**
+ *
+ * @param {serverHandler.data} data
+ */
+function addServerObject(data) {
+  const serverNum = serverData.length;
+  serverData.push({
+    ...data,
+    creationDate: Date.now(),
+    dirSize: 0,
+  });
+  const server = new Server(serverNum, serverData[serverNum], "downloading");
+  servers.push(server);
+  return server;
+}
+
+function downloadServerJar(path, url) {
+  return new Promise((resolve) => {
     fs.writeFileSync(path + "/eula.txt", "eula=true");
-    const url = data.versionData.url;
+
     https.get(url, (res) => {
       const filePath = fs.createWriteStream(path + "/server.jar");
       res.pipe(filePath);
       filePath.on("finish", async () => {
         filePath.close();
         logger.info("Downloaded server jar");
-        try {
-          await currentServer.start();
-        } catch {
-          logger.error("Failed to create server...");
-          return;
-        }
-
-        await currentServer.shutdownHandler.stopServer();
         resolve();
-
-        await currentServer.updateDirSize();
-        saveServerData();
-        saveOnExit(currentServer);
       });
     });
   });
 }
 
-function writeServerProperties(server) {
-  let propertiesData = `motd=${server.data.name}\nquery.port=${server.data.versionData.port}\ndifficulty=${server.data.difficulty}\nserver-port=${server.data.versionData.port}\nspawn-protection=0\nview-distance=32\nsimulation-distance=32`;
-  if (server.data.seed != "") {
-    propertiesData += "\nlevel-seed=" + server.data.seed;
+/**
+ *
+ * @param {Object} server
+ * @param {serverHandler.data} data
+ */
+function writeServerProperties(data, serverPath) {
+  let propertiesData = `motd=${data.name}\nquery.port=${data.port}\nserver-port=${data.port}\nspawn-protection=0\nview-distance=20\nsimulation-distance=20`;
+  if (data.settings.difficulty)
+    propertiesData += `difficulty=${data.settings.difficulty}\n`;
+  if (data.settings.seed != "") {
+    propertiesData += "\nlevel-seed=" + data.settings.seed;
   }
-  if (server.data.gamemode == "hardcore") {
+  if (data.settings.gamemode == "hardcore") {
     propertiesData += "\ngamemode=survival\nhardcore=true";
   } else {
-    propertiesData += "\ngamemode=" + server.data.gamemode;
+    propertiesData += "\ngamemode=" + data.settings.gamemode;
   }
-  const path = `${process.cwd()}/data/servers/${
-    server.serverNum
-  }/server.properties`;
-  fs.writeFileSync(path, propertiesData);
+  fs.writeFileSync(serverPath + "/server.properties", propertiesData);
 }
 
 function saveOnExit(server) {
   server.on("statusUpdate", (newStatus) => {
     if (newStatus == "offline") saveServerData();
+  });
+}
+
+export function deleteServer(serverNum) {
+  return new Promise(async (resolve) => {
+    const server = get(serverNum);
+    if (!server)
+      logger.exitWithError("Tried to delete server that doesn't exist...");
+    await server.deleteFiles();
+    delete serverData[serverNum];
+    saveServerData();
+    delete servers[serverNum];
+    logger.info(`Deleted server ${serverNum}`);
+    resolve();
   });
 }
 

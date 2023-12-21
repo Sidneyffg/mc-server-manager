@@ -53,7 +53,7 @@ export default class Server {
 
       this.consoleLog = "";
       const javaVersion = javaHandler.versionChecker.check(
-        this.data.versionData.version,
+        this.data.version,
         "paper"
       );
       const javaPath = javaHandler.versions.find(
@@ -118,6 +118,22 @@ export default class Server {
       return;
     }
     this.server.stdin.write(msg + "\n");
+  }
+
+  deleteFiles() {
+    return new Promise((resolve) => {
+      fs.rm(this.path, { recursive: true }, (err) => {
+        if (err) throw err;
+        fs.rm(
+          `${process.cwd()}/data/backups/${this.serverNum}`,
+          { recursive: true },
+          (err) => {
+            if (err) throw err;
+            resolve();
+          }
+        );
+      });
+    });
   }
 
   #listeners = [];

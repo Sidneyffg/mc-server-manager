@@ -9,6 +9,9 @@ const versionHandler = {
     this.paper.init();
     this.logger.info("Initialized");
   },
+  getVersionData(type, version) {
+    return this.data.versions[type].find((e) => e.version == version);
+  },
   data: {
     init() {
       if (!fs.existsSync(this.path)) {
@@ -123,7 +126,7 @@ const versionHandler = {
           const jsonData = await versionHandler.getJsonFromLink(
             "https://api.papermc.io/v2/projects/paper/versions/" + version
           );
-          const latest_build = jsonData.builds.pop();
+          const build = jsonData.builds.pop();
 
           const thisAllVersions = this.allVersions.find(
             (e) => e.version == version
@@ -131,13 +134,13 @@ const versionHandler = {
           if (!thisAllVersions) {
             this.allVersions.push({
               version,
-              latest_build,
-              url: `https://api.papermc.io/v2/projects/paper/versions/${version}/builds/${latest_build}/downloads/paper-${version}-${latest_build}.jar`,
+              build,
+              url: `https://api.papermc.io/v2/projects/paper/versions/${version}/builds/${build}/downloads/paper-${version}-${build}.jar`,
             });
             madeChange = true;
-          } else if (thisAllVersions.latest_build != latest_build) {
-            thisAllVersions.latest_build = latest_build;
-            thisAllVersions.url = `https://api.papermc.io/v2/projects/paper/versions/${version}/builds/${latest_build}/downloads/paper-${version}-${latest_build}.jar`;
+          } else if (thisAllVersions.build != build) {
+            thisAllVersions.build = build;
+            thisAllVersions.url = `https://api.papermc.io/v2/projects/paper/versions/${version}/builds/${build}/downloads/paper-${version}-${build}.jar`;
             madeChange = true;
           }
 
