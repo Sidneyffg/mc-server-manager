@@ -29,7 +29,7 @@ export async function init() {
   }
 
   for (let i = 0; i < serverData.length; i++) {
-    servers.push(new Server(i, serverData[i]));
+    servers.push(new Server(serverData[i]));
     saveOnExit(servers[i]);
   }
 
