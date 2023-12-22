@@ -3,10 +3,11 @@ import https from "https";
 import Logger from "./consoleHandler.js";
 
 const versionHandler = {
-  init() {
+  async init() {
     this.data.init();
     this.vanilla.init();
     this.paper.init();
+    await this.getServerVersions();
     this.logger.info("Initialized");
   },
   getVersionData(type, version) {

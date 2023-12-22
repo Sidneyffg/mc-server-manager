@@ -13,12 +13,14 @@ import javaHandler from "./javaHandler.js";
 
 export default class Server {
   constructor(data, status = "offline") {
-    this.serverNum = data.num;
     this.data = data;
+    this.serverNum = this.data.num;
+    this.#logger = new Logger(["serverHandler", `server ${this.serverNum}`]);
+    this.#logger.info(`Initializing...`);
+
     this.dirPath = `${process.cwd()}/data/servers/${this.data.id}`;
     this.path = `${this.dirPath}/server`;
     this.status = status;
-    this.#logger = new Logger(["serverHandler", `server ${this.serverNum}`]);
 
     this.#checkServer();
     this.#initHandlers();
@@ -47,7 +49,7 @@ export default class Server {
   dirSizeIntervalId;
 
   start() {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       if (this.server) {
         return;
       }
@@ -72,7 +74,7 @@ export default class Server {
       this.server.stdout.on("data", (data) => this.#handleData(data, resolve));
       this.server.stderr.on("data", (data) => this.#handleData(data, resolve));
       this.server.on("close", () => {
-        reject(); //wil only work if hasn't resolved yet
+        resolve(false); //wil only work if hasn't resolved yet
         this.setServerStatus("offline");
         this.server = null;
         clearInterval(this.dirSizeIntervalId);

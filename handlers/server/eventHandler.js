@@ -67,7 +67,7 @@ export default class EventHandler {
     switch (res.event) {
       case "started":
         this.#server.setServerStatus("online");
-        resolve();
+        resolve(true);
         break;
       case "joined":
         this.#server.emit("playerConnected", res.data.username);

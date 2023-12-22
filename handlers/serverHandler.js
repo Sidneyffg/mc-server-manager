@@ -13,7 +13,7 @@ export let ip;
 export function totalServers() {
   return servers.length;
 }
-console.log();
+
 export async function init() {
   logger.info("Initializing...");
   initServerData();
@@ -32,6 +32,10 @@ export async function init() {
     servers.push(new Server(serverData[i]));
     saveOnExit(servers[i]);
   }
+  logger.info("Initialized all servers");
+
+  await versionHandler.init();
+  javaHandler.init();
 
   setTimeout(() => saveServerData(), 6e5); //every ten minutes
   logger.info("Initialized successfully");
@@ -84,12 +88,12 @@ export function newServer(data, callbackOnFirstStart = null) {
     await downloadServerJar(path, url);
     fs.writeFileSync(path + "/eula.txt", "eula=true");
 
-    await currentServer.start().catch((e) => {
+    const serverStarted = await currentServer.start();
+    if (!serverStarted) {
       logger.error("Failed to create server...");
-      logger.error(e);
       reject();
       return;
-    });
+    }
 
     await currentServer.shutdownHandler.stopServer();
     await currentServer.updateDirSize();

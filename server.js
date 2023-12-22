@@ -1,4 +1,12 @@
 import Logger from "./handlers/consoleHandler.js";
+import express from "express";
+import { Server } from "socket.io";
+import http from "http";
+import * as serverHandler from "./handlers/serverHandler.js";
+import versionHandler from "./handlers/versionHandler.js";
+import * as listener from "./handlers/listener.js";
+import javaHandler from "./handlers/javaHandler.js";
+
 const logger = new Logger(["webserver"]);
 process.on("exit", (code) => {
   const text = `Exiting with code ${code}`;
@@ -6,37 +14,16 @@ process.on("exit", (code) => {
   else logger.info(text);
 });
 
-import express from "express";
+// create webServer for website
 const app = express();
-import { Server } from "socket.io";
-import http from "http";
 const server = http.createServer(app);
 const io = new Server(server);
 
-import * as serverHandler from "./handlers/serverHandler.js";
-await serverHandler.init();
-import versionHandler from "./handlers/versionHandler.js";
-versionHandler.init();
-import * as listener from "./handlers/listener.js";
-
 app.set("view engine", "ejs");
 const websitePath = process.cwd() + "/website";
-
 app.use("/website", express.static(websitePath));
 
-await versionHandler.getServerVersions();
-import javaHandler from "./handlers/javaHandler.js";
-javaHandler.init();
-
-function statusToColor(s) {
-  return [
-    { s: "online", c: "lime" },
-    { s: "offline", c: "grey" },
-    { s: "starting", c: "cyan" },
-    { s: "stopping", c: "cyan" },
-    { s: "downloading", c: "yellow" },
-  ].find((e) => e.s == s).c;
-}
+await serverHandler.init();
 
 app.get("/", (req, res) => {
   res.redirect("/servers");
@@ -50,7 +37,15 @@ app.get("/servers", (req, res) => {
   res.render(websitePath + "/index.ejs", {
     versions: versionHandler.data.versions,
     serverData,
-    statusToColor,
+    statusToColor: (s) => {
+      return [
+        { s: "online", c: "lime" },
+        { s: "offline", c: "grey" },
+        { s: "starting", c: "cyan" },
+        { s: "stopping", c: "cyan" },
+        { s: "downloading", c: "yellow" },
+      ].find((e) => e.s == s).c;
+    },
   });
 });
 
@@ -145,9 +140,7 @@ io.on("connection", (socket) => {
     const server = serverHandler.get(serverNum);
     if (server.status != "online") return;
     await server.shutdownHandler.stopServer();
-    server.start().catch(() => {
-      socket.emit("startError", "data");
-    });
+    server.start();
   });
 
   socket.on("addPlayerToWhitelist", (serverNum, playerName, callback) => {
@@ -182,9 +175,7 @@ io.on("connection", (socket) => {
     if (force) {
       if (server.status != "online") return;
       await server.shutdownHandler.stopServer();
-      server.start().catch(() => {
-        socket.emit("startError", "data");
-      });
+      server.start();
     }
   });
 
