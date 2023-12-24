@@ -14,5 +14,4 @@ declare namespace serverHandler {
       [x:string]:string
     }
   }
-
 }

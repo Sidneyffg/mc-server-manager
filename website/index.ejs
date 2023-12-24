@@ -19,17 +19,17 @@
         <h1>Servers</h1>
         <button onclick="main.openNewServer()">New server</button>
       </div>
-      <% for(let i = 0;i<serverData.length;i++){ %>
-      <div onclick="window.location.href = '/servers/<%= i %>'">
+      <% for(let i = 0;i<servers.length;i++){ %>
+      <div onclick="window.location.href = '/servers/<%= servers[i].data.num %>'">
         <img
           src="https://img.freepik.com/free-photo/painting-mountain-lake-with-mountain-background_188544-9126.jpg?q=10&h=200"
         />
         <div class="server-data">
-          <h2><%= serverData[i].data.name %></h2>
-          <p><%= serverData[i].data.type %> <%= serverData[i].data.version %></p>
+          <h2><%= servers[i].data.name %></h2>
+          <p><%= servers[i].data.type %> <%= servers[i].data.version %></p>
         </div>
         <div class="server-status">
-          <div class="server-status-color" style="background-color:<%= statusToColor(serverData[i].status) %>;"></div>
+          <div class="server-status-color" style="background-color:<%= statusToColor(servers[i].status) %>;"></div>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             height="24"

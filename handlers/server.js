@@ -124,9 +124,12 @@ export default class Server {
   }
 
   deleteFiles() {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       fs.rm(this.dirPath, { recursive: true }, (err) => {
-        if (err) this.#logger.error("Failed to delete server files:\n" + err);
+        if (err) {
+          this.#logger.error("Failed to delete server files:\n" + err);
+          return reject();
+        }
         resolve();
       });
     });

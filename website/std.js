@@ -65,6 +65,11 @@ const utils = {
 
       socket.emit("restartServer", this.num);
     },
+    delete() {
+      if (this.status != "offline") return;
+
+      socket.emit("deleteServer", this.num);
+    },
     on(event, callback) {
       this._listener.add(event, callback);
     },

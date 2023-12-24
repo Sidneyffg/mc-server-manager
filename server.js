@@ -30,13 +30,9 @@ app.get("/", (req, res) => {
 });
 
 app.get("/servers", (req, res) => {
-  let serverData = [];
-  for (let i = 0; i < serverHandler.totalServers(); i++) {
-    serverData.push(serverHandler.get(i));
-  }
   res.render(websitePath + "/index.ejs", {
     versions: versionHandler.data.versions,
-    serverData,
+    servers: serverHandler.servers,
     statusToColor: (s) => {
       return [
         { s: "online", c: "lime" },
@@ -73,17 +69,13 @@ app.get("/servers/*/*", (req, res) => {
 
 app.get("/servers/*", (req, res) => {
   const serverNum = parseInt(req.url.split("/")[2]);
-
-  if (
-    isNaN(serverNum) ||
-    serverNum >= serverHandler.totalServers() ||
-    serverNum < 0
-  ) {
+  const server = serverHandler.get(serverNum);
+  if (!server) {
     res.redirect("/servers");
     return;
   }
   res.render(websitePath + "/server/server.ejs", {
-    serverData: serverHandler.get(serverNum),
+    server,
     serverIp: serverHandler.ip,
   });
 });
@@ -107,8 +99,8 @@ app.get("/newserver", (req, res) => {
 
   const newServerNum = serverHandler.totalServers();
   serverHandler
-    .newServer(serverData, () => {
-      res.redirect("/servers/" + newServerNum);
+    .newServer(serverData, (server) => {
+      res.redirect("/servers/" + server.data.num);
     })
     .catch((e) => {
       res.redirect("/servers");
@@ -212,6 +204,11 @@ io.on("connection", (socket) => {
   socket.on("deleteBackup", (serverNum, backupId) => {
     const server = serverHandler.get(serverNum);
     server.backupHandler.deleteBackup(backupId);
+  });
+
+  socket.on("deleteServer", (serverNum) => {
+    console.log("dete");
+    serverHandler.deleteServer(serverNum);
   });
 });
 

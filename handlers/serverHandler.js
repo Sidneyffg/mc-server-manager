@@ -6,8 +6,9 @@ import * as listener from "./listener.js";
 import javaHandler from "./javaHandler.js";
 import versionHandler from "./versionHandler.js";
 import { v4 as uuidV4 } from "uuid";
+import { getServerDirSize } from "./usageHandler.js";
 const logger = new Logger(["serverHandler"]);
-const servers = [];
+export const servers = [];
 let serverData;
 export let ip;
 export function totalServers() {
@@ -29,8 +30,9 @@ export async function init() {
   }
 
   for (let i = 0; i < serverData.length; i++) {
-    servers.push(new Server(serverData[i]));
-    saveOnExit(servers[i]);
+    const server = new Server(serverData[i]);
+    servers.push(server);
+    saveOnExit(server);
   }
   logger.info("Initialized all servers");
 
@@ -58,15 +60,33 @@ function initServerData() {
   }
 }
 
-export function get(serverNum) {
-  return servers[serverNum];
+/**
+ *
+ * @param {string|number} num
+ * @returns
+ */
+function strictParseInt(num) {
+  if (typeof num != "string") num = num.toString();
+  if (num !== parseInt(num).toString()) return NaN;
+  return parseInt(num);
+}
+
+/**
+ * Gets server based on id or num
+ * @param {number|string} serverData
+ * @returns {Server}
+ */
+export function get(serverData) {
+  if (strictParseInt(serverData) != NaN)
+    return servers.find((e) => e.data.num == serverData);
+  return servers.find((e) => e.data.id == serverData);
 }
 
 /**
  * Creates a new Minecraft server.
  * @param {serverHandler.data} data
- * @param {() => void} callbackOnFirstStart
- * @returns {Promise<void>}
+ * @param {() => Server} callbackOnFirstStart
+ * @returns {Promise<Server>}
  */
 
 export function newServer(data, callbackOnFirstStart = null) {
@@ -78,7 +98,7 @@ export function newServer(data, callbackOnFirstStart = null) {
     fs.mkdirSync(path);
     const currentServer = addServerObject(data);
 
-    if (callbackOnFirstStart) callbackOnFirstStart();
+    if (callbackOnFirstStart) callbackOnFirstStart(currentServer);
 
     const javaVersion = javaHandler.getVersion(data.type, data.version);
     await javaHandler.downloadIfMissing(javaVersion);
@@ -99,25 +119,35 @@ export function newServer(data, callbackOnFirstStart = null) {
     await currentServer.updateDirSize();
     saveServerData();
     saveOnExit(currentServer);
-    resolve();
+    resolve(currentServer);
   });
 }
 
 /**
  *
  * @param {serverHandler.data} data
+ * @returns {Server}
  */
 function addServerObject(data) {
-  const serverNum = serverData.length;
-  serverData.push({
+  const serverNum = getNewServerNum();
+  const newData = {
     ...data,
     num: serverNum,
     creationDate: Date.now(),
     dirSize: 0,
-  });
-  const server = new Server(serverData[serverNum], "downloading");
+  };
+  serverData.push(newData);
+  const server = new Server(newData, "downloading");
   servers.push(server);
   return server;
+}
+
+function getNewServerNum() {
+  let idx = 0;
+  while (true) {
+    if (!serverData.find((e) => e.num == idx)) return idx;
+    idx++;
+  }
 }
 
 function downloadServerJar(path, url) {
@@ -162,13 +192,20 @@ function saveOnExit(server) {
 
 export function deleteServer(serverNum) {
   return new Promise(async (resolve) => {
+    logger.info(`Deleting server ${serverNum}`);
     const server = get(serverNum);
     if (!server)
-      logger.exitWithError("Tried to delete server that doesn't exist...");
-    await server.deleteFiles();
-    delete serverData[serverNum];
+      return logger.error("Tried to delete server that doesn't exist...");
+    try {
+      await server.deleteFiles();
+    } catch {
+      logger.error("Aborting server deletion...");
+      return;
+    }
+    const data = serverData.find((e) => e.num == serverNum);
+    serverData.splice(serverData.indexOf(data), 1);
+    servers.splice(servers.indexOf(server), 1);
     saveServerData();
-    delete servers[serverNum];
     logger.info(`Deleted server ${serverNum}`);
     resolve();
   });
