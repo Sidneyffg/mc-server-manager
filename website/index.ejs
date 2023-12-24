@@ -29,7 +29,7 @@
           <p><%= servers[i].data.type %> <%= servers[i].data.version %></p>
         </div>
         <div class="server-status">
-          <div class="server-status-color" style="background-color:<%= statusToColor(servers[i].status) %>;"></div>
+          <div class="server-status-color" style="background-color:<%= statusToColor(servers[i].status) %>;" data-server-num="<%= servers[i].data.num %>"></div>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             height="24"

@@ -2,7 +2,10 @@ const main = {
   start() {
     this.elems = document.getElementsByClassName("server-status-color");
     for (let i = 0; i < this.elems.length; i++) {
-      socket.on("statusUpdate" + i, (status) => this.changeStatus(i, status));
+      const serverNum = this.elems[i].dataset.serverNum;
+      socket.on("statusUpdate" + serverNum, (status) => {
+        this.changeStatus(i, status);
+      });
     }
     socket.on("statusUpdate" + this.elems.length, () => location.reload());
   },
@@ -10,6 +13,7 @@ const main = {
   newServerMenu: document.getElementById("std-menu"),
   newServerVersions: document.querySelectorAll(".serverVersion"),
   elems: null,
+  serverNums: null,
   closeNewServer() {
     this.darkener.style.display = "none";
     this.newServerMenu.style.display = "none";
@@ -23,8 +27,8 @@ const main = {
   },
   changeServerType(type) {
     for (const e of this.newServerVersions) {
-      if(e.name == "version" + type) e.style.display = "block"
-      else e.style.display = "none"
+      if (e.name == "version" + type) e.style.display = "block";
+      else e.style.display = "none";
     }
   },
   statusToColor(s) {
