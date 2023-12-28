@@ -123,7 +123,7 @@ export default class EventHandler {
         event: "started",
       },
       {
-        match: /\[38;2;255;255;85m([^ ]*) joined the game/,
+        match: /([^ ]*) joined the game/,
         event: "joined",
         data: ["username"],
       },

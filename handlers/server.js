@@ -97,12 +97,26 @@ export default class Server {
 
   #handleData(data) {
     if (!data) return;
-    data = data.toString().trim().replaceAll("\r", "").split("\n");
+    data = data.toString().trim().replaceAll("\r", "");
+    this.#getColorCodes(data).forEach((e) => {
+      data = data.replaceAll(e, "");
+    });
+    data = data.split("\n");
     data.forEach((e) => {
       e = e.trim();
       this.eventHandler.handle(e);
       this.consoleLog += e + "\n";
     });
+  }
+
+  /**
+   * Gets all Java color codes
+   * @param {string} message
+   * @returns {string[]} color code matches
+   */
+  #getColorCodes(message) {
+    const reg = message.match(/\u001B\[.*?m/g);
+    return reg ? reg : [];
   }
 
   async updateDirSize() {
