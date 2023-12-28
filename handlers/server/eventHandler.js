@@ -55,7 +55,7 @@ export default class EventHandler {
     this.serverType = this.#server.data.type;
   }
 
-  handle(message, resolve) {
+  handle(message) {
     listener.emit("_consoleUpdate" + this.#server.serverNum, message);
     message = this.filterTimestamp(message);
     if (!message) return;
@@ -66,8 +66,8 @@ export default class EventHandler {
 
     switch (res.event) {
       case "started":
+        this.#server.resolveStart(true);
         this.#server.setServerStatus("online");
-        resolve(true);
         break;
       case "joined":
         this.#server.emit("playerConnected", res.data.username);

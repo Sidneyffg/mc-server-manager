@@ -90,7 +90,7 @@ export function get(serverData) {
  */
 
 export function newServer(data, callbackOnFirstStart = null) {
-  return new Promise(async (resolve, reject) => {
+  return new Promise(async (resolve) => {
     data.id = uuidV4();
     let path = `${process.cwd()}/data/servers/${data.id}`;
     fs.mkdirSync(path);
@@ -111,7 +111,6 @@ export function newServer(data, callbackOnFirstStart = null) {
     const serverStarted = await currentServer.start();
     if (!serverStarted) {
       logger.error("Failed to create server...");
-      reject();
       return;
     }
 

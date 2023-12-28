@@ -10,6 +10,7 @@ import BackupHandler from "./server/backupHandler.js";
 import ShutdownHandler from "./server/shutdownHandler.js";
 import { getServerDirSize } from "./usageHandler.js";
 import javaHandler from "./javaHandler.js";
+import portHandler from "./portHandler.js";
 
 export default class Server {
   constructor(data, status = "offline") {
@@ -21,6 +22,8 @@ export default class Server {
     this.dirPath = `${process.cwd()}/data/servers/${this.data.id}`;
     this.path = `${this.dirPath}/server`;
     this.status = status;
+
+    portHandler.bind(this.data.port, this.data.id);
 
     this.#checkServer();
     this.#initHandlers();
@@ -48,10 +51,14 @@ export default class Server {
   path;
   dirSizeIntervalId;
 
-  start() {
-    return new Promise((resolve) => {
+  resolveStart = () => null;
+
+  async start() {
+    const res = await new Promise((resolve) => {
+      this.resolveStart = (started) => resolve(started);
       if (this.server) {
-        return;
+        this.#logger.error("Tried to start already online server...");
+        return resolve(false);
       }
 
       this.consoleLog = "";
@@ -70,25 +77,30 @@ export default class Server {
       );
 
       this.setServerStatus("starting");
+      portHandler.activate(this.data.id);
 
-      this.server.stdout.on("data", (data) => this.#handleData(data, resolve));
-      this.server.stderr.on("data", (data) => this.#handleData(data, resolve));
+      this.server.stdout.on("data", (data) => this.#handleData(data));
+      this.server.stderr.on("data", (data) => this.#handleData(data));
       this.server.on("close", () => {
-        resolve(false); //wil only work if hasn't resolved yet
+        if (this.status == "downloading") resolve(false);
         this.setServerStatus("offline");
+        portHandler.deactivate(this.data.id);
         this.server = null;
         clearInterval(this.dirSizeIntervalId);
       });
 
       this.dirSizeIntervalId = setInterval(() => this.updateDirSize(), 6e5); // every 10 minutes
     });
+    this.resolveStart = () => null;
+    return res;
   }
 
-  #handleData(data, resolve) {
+  #handleData(data) {
+    if (!data) return;
     data = data.toString().trim().replaceAll("\r", "").split("\n");
     data.forEach((e) => {
       e = e.trim();
-      this.eventHandler.handle(e, resolve);
+      this.eventHandler.handle(e);
       this.consoleLog += e + "\n";
     });
   }

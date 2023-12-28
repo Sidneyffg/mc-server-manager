@@ -1,16 +1,15 @@
 import Logger from "./consoleHandler.js";
 
 const portHandler = {
-  init(serverData) {
-    this.logger = new Logger(["portHandler"]);
-    this.serverData = serverData;
-  },
   bind(port, serverId) {
     if (this._getPortData({ serverId })) {
       this.logger.error("Server tried to bind to port without unbinding...");
       this._getPortData({ serverId }).port = port;
       return;
     }
+    if (this._getPortData({ port }))
+      this.logger.warn(`Port ${port} is already in use...`);
+    this.logger.info(`Bound to port ${port}`);
     this.ports.push({ serverId, port, activated: false });
   },
   unbind(serverId) {
@@ -26,34 +25,46 @@ const portHandler = {
       return this.logger.error("Tried to activate port without binding...");
     if (portData.activated)
       return this.logger.error("Tried to activate already activated port...");
+    if (this._getPortData({ port: portData.port }, serverId)?.activated)
+      this.logger.error(
+        `Port ${portData.port} activated by multiple servers...`
+      );
+    this.logger.info(`Activated port ${portData.port}`);
     portData.activated = true;
   },
-  deactive(serverId) {
+  deactivate(serverId) {
     const portData = this._getPortData({ serverId });
     if (!portData)
       return this.logger.error("Tried to deactivate port without binding...");
     if (!portData.activated)
       return this.logger.error("Tried to deactivate an inactive port...");
+    this.logger.info(`Deactivated port ${portData.port}`);
     portData.activated = false;
   },
   isPortAvailable(port) {
     const serverWithPort = this._getPortData({ port });
-    return serverWithPort != undefined;
+    return serverWithPort == undefined;
   },
   getUsedPorts() {
-    return this.serverData.map((e) => e.id);
+    return this.ports.map((e) => e.port);
   },
   /**
    * @param {Object} data
    * @param {number} [data.port]
    * @param {string} [data.serverId]
+   * @param {string} [excludingServerId]
    * @returns
    */
-  _getPortData(data) {
-    if (data.port) return this.serverData.find((e) => e.port == data.port);
-    return this.serverData.find((e) => e.serverId == data.serverId);
+  _getPortData(data, excludingServerId = null) {
+    if (data.port)
+      return this.ports.find(
+        (e) => e.port == data.port && e.serverId != excludingServerId
+      );
+    return this.ports.find(
+      (e) => e.serverId == data.serverId && e.serverId != excludingServerId
+    );
   },
   ports: [],
-  logger: null,
+  logger: new Logger(["portHandler"]),
 };
 export default portHandler;
