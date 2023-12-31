@@ -70,6 +70,9 @@ const utils = {
 
       socket.emit("deleteServer", this.num);
     },
+    emit(event, ...data) {
+      socket.emit(event, this.num, ...data);
+    },
     on(event, callback) {
       this._listener.add(event, callback);
     },
@@ -171,6 +174,13 @@ const utils = {
       if (!this.ignoreStop) utils.server.stopIn(Math.round(min * 6e4));
       return true;
     },
+  },
+  shallowEqual(e, t) {
+    let l = Object.keys(e),
+      n = Object.keys(t);
+    if (l.length !== n.length) return !1;
+    for (let r of l) if (e[r] !== t[r]) return !1;
+    return !0;
   },
 };
 utils.init();

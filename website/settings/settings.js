@@ -1,139 +1,123 @@
-const socket = io();
-const currentServer = window.location.pathname.split("/")[2];
-let serverStatus = document.body.dataset.serverstatus;
+const main = {
+  start() {
+    this.editPopup.init();
+  },
 
-socket.on("settingsUpdate" + currentServer, (updatedSettings) => {
-  const newSettings = {};
-  for (const property in updatedSettings) {
-    newSettings[property] = updatedSettings[property].value;
-  }
-  stdSettings = newSettings;
-  setSettings(stdSettings);
-  closeEditPopup();
-});
-socket.on("statusUpdate" + currentServer, (newStatus) => {
-  setServerStatus(newStatus);
-});
+  editPopup: {
+    unsavedChanges: false,
+    init() {
+      this.popup = document.getElementById("edit-popup");
+      this.popupHeader = document.getElementById("edit-popup-header");
+      this.popupRestartBtn = document.getElementById("edit-popup-restart-btn");
+      this.popupSaveBtn = document.getElementById("edit-popup-save-btn");
+      this.popupDiscardBtn = document.getElementById("edit-popup-discard-btn");
 
-function setServerStatus(newStatus) {
-  serverStatus = newStatus;
-  if (unsavedChanges) openEditPopup();
-}
+      this.settingElems = Array.from(
+        document.getElementsByClassName("setting-item")
+      );
+      this.stdSettings = this.getSettings();
 
-let unsavedChanges = false;
-const settingItems = Array.from(
-  document.getElementsByClassName("setting-item")
-);
+      utils.server.on("statusUpdate", () => {
+        this.open();
+      });
 
-let stdSettings = getSettings();
-
-function getSettings() {
-  const settings = {};
-  settingItems.forEach((e) => {
-    let value;
-    if (e.type == "checkbox") {
-      value = e.checked.toString();
-    } else {
-      value = e.value.toString();
-    }
-    settings[e.dataset.settingName] = value;
-  });
-  return settings;
-}
-
-function setSettings(newSettings) {
-  settingItems.forEach((e) => {
-    if (e.type == "checkbox") {
-      e.checked = newSettings[e.dataset.settingName] === "true";
-    } else {
-      e.value = newSettings[e.dataset.settingName];
-    }
-  });
-}
-
-function discardChanges() {
-  setSettings(stdSettings);
-  closeEditPopup();
-}
-
-function settingsChange() {
-  const changed = !shallowEqual(stdSettings, getSettings());
-  console.log(changed);
-  if (changed) {
-    openEditPopup();
-  } else {
-    closeEditPopup();
-  }
-}
-
-function getChangesSettings() {
-  const changedSettings = {};
-  settingItems.forEach((e) => {
-    let setting;
-    if (e.type == "checkbox") {
-      setting = e.checked.toString();
-    } else {
-      setting = e.value.toString();
-    }
-    if (setting != stdSettings[e.dataset.settingName]) {
-      changedSettings[e.dataset.settingName] = setting;
-    }
-  });
-  return changedSettings;
-}
-
-const editPopup = document.getElementById("edit-popup");
-const editPopupHeader = document.getElementById("edit-popup-header");
-const editPopupRestartBtn = document.getElementById("edit-popup-restart-btn");
-const editPopupSaveBtn = document.getElementById("edit-popup-save-btn");
-const editPopupDiscardBtn = document.getElementById("edit-popup-discard-btn");
-function openEditPopup() {
-  unsavedChanges = true;
-  switch (serverStatus) {
-    case "offline":
-      editPopupHeader.innerHTML = "Unsaved changes";
-      editPopupRestartBtn.style.display = "none";
-      enablePopupBtns();
-      break;
-    case "online":
-      editPopupHeader.innerHTML = "Server needs to restart to save changes";
-      editPopupRestartBtn.style.display = "inline";
-      enablePopupBtns();
-      break;
-    default:
-      editPopupHeader.innerHTML = "Unsaved changes";
-      editPopupRestartBtn.style.display = "none";
-      disablePopupBtns();
-      console.log("disabled");
-  }
-  editPopup.style.display = "block";
-}
-
-function closeEditPopup() {
-  unsavedChanges = false;
-  editPopup.style.display = "none";
-}
-
-function disablePopupBtns() {
-  editPopupDiscardBtn.disabled = true;
-  editPopupRestartBtn.disabled = true;
-  editPopupSaveBtn.disabled = true;
-}
-
-function enablePopupBtns() {
-  editPopupDiscardBtn.disabled = false;
-  editPopupRestartBtn.disabled = false;
-  editPopupSaveBtn.disabled = false;
-}
-
-function saveChanges(force) {
-  socket.emit("updateSettings", currentServer, getChangesSettings(), force);
-}
-
-function shallowEqual(e, t) {
-  let l = Object.keys(e),
-    n = Object.keys(t);
-  if (l.length !== n.length) return !1;
-  for (let r of l) if (e[r] !== t[r]) return !1;
-  return !0;
-}
+      utils.server.on("settingsUpdate", (updatedSettings) => {
+        this.stdSettings = updatedSettings;
+        this.setSettings(this.stdSettings);
+        this.close();
+      });
+    },
+    open() {
+      this.unsavedChanges = true;
+      switch (utils.server.status) {
+        case "offline":
+          this.popupHeader.innerHTML = "Unsaved changes";
+          this.popupRestartBtn.style.display = "none";
+          this.enableBtns();
+          break;
+        case "online":
+          this.popupHeader.innerHTML =
+            "Server needs to restart to save changes";
+          this.popupRestartBtn.style.display = "inline";
+          this.enableBtns();
+          break;
+        default:
+          this.popupHeader.innerHTML = "Unsaved changes";
+          this.popupRestartBtn.style.display = "none";
+          this.disableBtns();
+      }
+      this.popup.style.display = "block";
+    },
+    close() {
+      this.unsavedChanges = false;
+      this.popup.style.display = "none";
+    },
+    enableBtns() {
+      this.popupDiscardBtn.disabled = false;
+      this.popupRestartBtn.disabled = false;
+      this.popupSaveBtn.disabled = false;
+    },
+    disableBtns() {
+      this.popupDiscardBtn.disabled = true;
+      this.popupRestartBtn.disabled = true;
+      this.popupSaveBtn.disabled = true;
+    },
+    getSettings() {
+      const settings = {};
+      this.settingElems.forEach((e) => {
+        let value;
+        if (e.type == "checkbox") {
+          value = e.checked.toString();
+        } else {
+          value = e.value.toString();
+        }
+        settings[e.dataset.settingName] = value;
+      });
+      return settings;
+    },
+    setSettings(newSettings) {
+      this.settingElems.forEach((e) => {
+        if (e.type == "checkbox") {
+          e.checked = newSettings[e.dataset.settingName] === "true";
+        } else {
+          e.value = newSettings[e.dataset.settingName];
+        }
+      });
+    },
+    settingsChange() {
+      const changed = !utils.shallowEqual(this.stdSettings, this.getSettings());
+      if (changed) {
+        this.open();
+      } else {
+        this.close();
+      }
+    },
+    getChangesSettings() {
+      const changedSettings = {};
+      this.settingElems.forEach((e) => {
+        let setting;
+        if (e.type == "checkbox") {
+          setting = e.checked.toString();
+        } else {
+          setting = e.value.toString();
+        }
+        if (setting != this.stdSettings[e.dataset.settingName]) {
+          changedSettings[e.dataset.settingName] = setting;
+        }
+      });
+      return changedSettings;
+    },
+    saveChanges(force) {
+      utils.server.emit("updateSettings", this.getChangesSettings(), force);
+    },
+    discardChanges() {
+      this.setSettings(this.stdSettings);
+      this.close();
+    },
+    popup: null,
+    popupHeader: null,
+    popupRestartBtn: null,
+    popupSaveBtn: null,
+    popupDiscardBtn: null,
+  },
+};

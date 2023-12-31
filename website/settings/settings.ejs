@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Settings</title>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/website/std.js"></script>
     <script src="/website/settings/settings.js" defer></script>
     <link rel="stylesheet" href="/website/styles.css" />
     <link
@@ -45,37 +46,38 @@
       <div id="server-general-settings">
         <div>
         <% let i = 0; %>
-        <% const editableSettings = serverData.settingsHandler.editableSettings; %>
-        <% const halfSettings = Math.floor(Object.keys(editableSettings).length / 2) %>
-        <% for(const setting in editableSettings) { %>
-          <% const value = editableSettings[setting].value %>
+        <% const settings = serverData.settingsHandler.clientSettings; %>
+        <% const allClientSettings = serverData.settingsHandler.allClientSettings %>
+        <% const halfSettings = Math.floor(Object.keys(settings).length / 2) %>
+        <% for(const setting in settings) { %>
+          <% const value = settings[setting] %>
           <div>
           <p><%= setting %></p>
-          <% switch(editableSettings[setting].type){ 
+          <% switch(allClientSettings[setting].type){ 
             case "bool": %>
               
               <label class="switch settings-styling">
-                <input type="checkbox" class="setting-item" onchange="settingsChange()"  <%= value == "true" ? "checked" : "" %> data-setting-name="<%= setting %>">
+                <input type="checkbox" data-jas="<%= "ja" %>" class="setting-item" onchange="main.editPopup.settingsChange()"  <%= value == "true" ? "checked" : "" %> data-setting-name="<%= setting %>">
                 <span class="slider-round"></span>
               </label>
               <% break 
             case "int": %>
-              <input type="number"  class="settings-styling setting-item" onchange="settingsChange()" onkeyup="settingsChange()" value="<%= value %>"data-setting-name="<%= setting %>">
+              <input type="number"  class="settings-styling setting-item" onchange="main.editPopup.settingsChange()" onkeyup="main.editPopup.settingsChange()" value="<%= value %>"data-setting-name="<%= setting %>">
               <% break 
             case "option": %>
-              <select class="settings-styling setting-item" onchange="settingsChange()" data-setting-name="<%= setting %>">
-                <% for(let i = 0;i<editableSettings[setting].options.length;i++){ %>
-                  <% const isOptionSelected = editableSettings[setting].options[i] == value %>
-                  <option <%= isOptionSelected ? "selected" : "" %> ><%= editableSettings[setting].options[i] %></option>
+              <select class="settings-styling setting-item" onchange="main.editPopup.settingsChange()" data-setting-name="<%= setting %>">
+                <% for(let i = 0;i<allClientSettings[setting].options.length;i++){ %>
+                  <% const isOptionSelected = allClientSettings[setting].options[i] == value %>
+                  <option <%= isOptionSelected ? "selected" : "" %> ><%= allClientSettings[setting].options[i] %></option>
                 <% } %>
               </select>
               <% break 
             case "string": %>
-              <input type="text" onkeyup="settingsChange()" class="settings-styling setting-item" value="<%= value %>" data-setting-name="<%= setting %>">
+              <input type="text" onkeyup="main.editPopup.settingsChange()" class="settings-styling setting-item" value="<%= value %>" data-setting-name="<%= setting %>">
             <% break %>
           <% } %>
           </div>
-          <% if(i == halfSettings){ %>
+          <% if(i + 1 == halfSettings){ %>
             </div>
             <div>
           <% } %>
@@ -88,9 +90,9 @@
     <div id="edit-popup" style="display: none;">
         <p id="edit-popup-header">Server needs to restart to save changes</p>
         <div>
-          <button onclick="discardChanges()" id="edit-popup-discard-btn">Discard</button>
-          <button onclick="saveChanges(false)" id="edit-popup-save-btn">Save</button>
-          <button onclick="saveChanges(true)" id="edit-popup-restart-btn">Restart now</button>
+          <button onclick="main.editPopup.discardChanges()" id="edit-popup-discard-btn">Discard</button>
+          <button onclick="main.editPopup.saveChanges(false)" id="edit-popup-save-btn">Save</button>
+          <button onclick="main.editPopup.saveChanges(true)" id="edit-popup-restart-btn">Restart now</button>
         </div>
     </div>
   </body>

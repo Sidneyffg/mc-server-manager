@@ -6,7 +6,7 @@ import * as listener from "./listener.js";
 import javaHandler from "./javaHandler.js";
 import versionHandler from "./versionHandler.js";
 import { v4 as uuidV4 } from "uuid";
-import { getServerDirSize } from "./usageHandler.js";
+
 const logger = new Logger(["serverHandler"]);
 export const servers = [];
 let serverData;
