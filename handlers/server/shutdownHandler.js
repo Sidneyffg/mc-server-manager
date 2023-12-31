@@ -40,7 +40,7 @@ export default class ShutdownHandler {
       const timeoutId = setTimeout(() => {
         this.logTimeLeftInServer(timestamp);
         this.#stopTimeoutIds.pop();
-      }, (millis - timestamp) * 1000);
+      }, millis - timestamp);
       this.#stopTimeoutIds.push(timeoutId);
     });
     this.serverShuttingDownAt = Date.now() + millis;
@@ -48,8 +48,8 @@ export default class ShutdownHandler {
   }
 
   logTimeLeftInServer(timeLeft) {
+    this.#logger.info(`Time logged in server (${timeLeft} ms left)`);
     timeLeft /= 1000;
-    this.#logger.info(`Time logged in server (${timeLeft} seconds left)`);
     let quantity = "seconds";
     if (timeLeft >= 60) {
       quantity = "minutes";

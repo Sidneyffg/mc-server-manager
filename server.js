@@ -212,7 +212,7 @@ io.on("connection", (socket) => {
   });
 });
 
-const webServerPort = 3000;
+const webServerPort = 3001;
 server.listen(webServerPort, () => {
   logger.info(`Listening on port ${webServerPort}`);
 });
