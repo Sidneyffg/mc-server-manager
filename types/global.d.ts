@@ -7,7 +7,6 @@ declare namespace serverHandler {
     name: string,
     type: string,
     version: string,
-    port: number,
     id?: string,
     num?: number,
     settings?: {

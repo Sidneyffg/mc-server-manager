@@ -1,10 +1,11 @@
 import Logger from "../consoleHandler.js";
 import * as listener from "../listener.js";
-import versionHandler from "../versionHandler.js";
+import portHandler from "../portHandler.js";
 
 export default class SettingsHandler {
   constructor(server) {
     this.#server = server;
+    this.serverId = this.#server.data.id;
     this.fileHandler = server.fileHandler;
     this.#logger = new Logger([
       "serverHandler",
@@ -122,11 +123,19 @@ const allClientSettings = {
           this.settings["query.port"] = port;
           this.saveSettings();
         }
+        const boundPort = portHandler.getPortData({
+          serverId: this.serverId,
+        })?.port;
+        if (!boundPort) portHandler.bind(port, this.serverId);
+        else if (port != boundPort) portHandler.rebind(port, this.serverId);
+
         return port;
       },
       handleClientSettingUpdate({ value }) {
         this.settings["server-port"] = value;
         this.settings["query.port"] = value;
+
+        portHandler.rebind(value, this.serverId);
       },
     },
   },

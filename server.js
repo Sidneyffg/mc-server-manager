@@ -86,7 +86,6 @@ app.get("/newserver", (req, res) => {
   const version = data["version" + type];
 
   const serverData = {
-    port: data.port,
     name: data.name,
     type,
     version,
@@ -97,9 +96,8 @@ app.get("/newserver", (req, res) => {
     },
   };
 
-  const newServerNum = serverHandler.totalServers();
   serverHandler
-    .newServer(serverData, (server) => {
+    .newServer(serverData, data.port, (server) => {
       res.redirect("/servers/" + server.data.num);
     })
     .catch((e) => {

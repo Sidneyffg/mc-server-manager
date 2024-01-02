@@ -1,6 +1,6 @@
-/data/servers/*
-/data/backups/*
+/data/servers
 /node_modules
 /data/serverData.json
+/data/portHandler.json
 /data/javaHandler
 /compatibilityChecker

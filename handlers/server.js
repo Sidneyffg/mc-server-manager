@@ -23,8 +23,6 @@ export default class Server {
     this.path = `${this.dirPath}/server`;
     this.status = status;
 
-    portHandler.bind(this.data.port, this.data.id);
-
     this.#checkServer();
     this.#initHandlers();
   }

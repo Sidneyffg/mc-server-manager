@@ -22,6 +22,9 @@ export async function init() {
   ip = await getIp();
   logger.info("Server ip: " + ip);
 
+  await versionHandler.init();
+  javaHandler.init();
+
   const path = `${process.cwd()}/data`;
 
   if (!fs.existsSync(path + "/servers")) {
@@ -35,9 +38,6 @@ export async function init() {
     saveOnExit(server);
   }
   logger.info("Initialized all servers");
-
-  await versionHandler.init();
-  javaHandler.init();
 
   setTimeout(() => saveServerData(), 6e5); //every ten minutes
   logger.info("Initialized successfully");
@@ -89,13 +89,14 @@ export function get(serverData) {
  * @returns {Promise<Server>}
  */
 
-export function newServer(data, callbackOnFirstStart = null) {
+export function newServer(data, port, callbackOnFirstStart = null) {
   return new Promise(async (resolve) => {
     data.id = uuidV4();
     let path = `${process.cwd()}/data/servers/${data.id}`;
     fs.mkdirSync(path);
     path += "/server";
     fs.mkdirSync(path);
+
     const currentServer = addServerObject(data);
 
     if (callbackOnFirstStart) callbackOnFirstStart(currentServer);
@@ -103,7 +104,7 @@ export function newServer(data, callbackOnFirstStart = null) {
     const javaVersion = javaHandler.getVersion(data.type, data.version);
     await javaHandler.downloadIfMissing(javaVersion);
 
-    writeServerProperties(data, path);
+    writeServerProperties(data, port, path);
     const url = versionHandler.getVersionData(data.type, data.version).url;
     await downloadServerJar(path, url);
     fs.writeFileSync(path + "/eula.txt", "eula=true");
@@ -168,8 +169,8 @@ function downloadServerJar(path, url) {
  * @param {Object} server
  * @param {serverHandler.data} data
  */
-function writeServerProperties(data, serverPath) {
-  let propertiesData = `motd=${data.name}\nquery.port=${data.port}\nserver-port=${data.port}\nspawn-protection=0\nview-distance=20\nsimulation-distance=20`;
+function writeServerProperties(data, port, serverPath) {
+  let propertiesData = `motd=${data.name}\nquery.port=${port}\nserver-port=${port}\nspawn-protection=0\nview-distance=20\nsimulation-distance=20`;
   if (data.settings.difficulty)
     propertiesData += `difficulty=${data.settings.difficulty}\n`;
   if (data.settings.seed != "") {
