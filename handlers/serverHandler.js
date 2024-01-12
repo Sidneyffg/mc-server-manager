@@ -6,6 +6,7 @@ import * as listener from "./listener.js";
 import javaHandler from "./javaHandler.js";
 import versionHandler from "./versionHandler.js";
 import { v4 as uuidV4 } from "uuid";
+import portHandler from "./portHandler.js";
 
 const logger = new Logger(["serverHandler"]);
 export const servers = [];
@@ -98,6 +99,7 @@ export function newServer(data, port, callbackOnFirstStart = null) {
     fs.mkdirSync(path);
 
     const currentServer = addServerObject(data);
+    portHandler.bind(port, currentServer.data.id);
 
     if (callbackOnFirstStart) callbackOnFirstStart(currentServer);
 

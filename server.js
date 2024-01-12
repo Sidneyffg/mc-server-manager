@@ -6,6 +6,7 @@ import * as serverHandler from "./handlers/serverHandler.js";
 import versionHandler from "./handlers/versionHandler.js";
 import * as listener from "./handlers/listener.js";
 import javaHandler from "./handlers/javaHandler.js";
+import portHandler from "./handlers/portHandler.js";
 
 const logger = new Logger(["webserver"]);
 process.on("exit", (code) => {
@@ -61,9 +62,11 @@ app.get("/servers/*/*", (req, res) => {
     res.redirect("/servers/" + serverNum);
     return;
   }
+  const server = serverHandler.get(serverNum);
   res.render(websitePath + `/${pageType}/${pageType}.ejs`, {
-    serverData: serverHandler.get(serverNum),
+    serverData: server,
     serverIp: serverHandler.ip,
+    serverPort: portHandler.getPortData({ serverId: server.data.id }).port,
   });
 });
 
@@ -77,6 +80,7 @@ app.get("/servers/*", (req, res) => {
   res.render(websitePath + "/server/server.ejs", {
     server,
     serverIp: serverHandler.ip,
+    serverPort: portHandler.getPortData({ serverId: server.data.id }).port,
   });
 });
 
