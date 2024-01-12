@@ -1,7 +1,4 @@
-/data/servers
+/data
 /node_modules
-/data/serverData.json
-/data/portHandler.json
-/data/javaHandler
 /compatibilityChecker
 /dev

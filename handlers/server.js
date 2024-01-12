@@ -69,7 +69,7 @@ export default class Server {
       ).path;
 
       this.server = spawn(
-        `"${process.cwd()}/data/startServer.bat"`,
+        `"${process.cwd()}/startServer.bat"`,
         [this.data.id, `"${javaPath}"`],
         { shell: true }
       );

@@ -18,6 +18,14 @@ export function totalServers() {
 
 export async function init() {
   logger.info("Initializing...");
+  const timestamp = Date.now();
+
+  const path = `${process.cwd()}/data`;
+  if (!fs.existsSync(path)) {
+    fs.mkdirSync(path);
+    logger.info("Created data folder");
+  }
+
   initServerData();
 
   ip = await getIp();
@@ -25,8 +33,6 @@ export async function init() {
 
   await versionHandler.init();
   javaHandler.init();
-
-  const path = `${process.cwd()}/data`;
 
   if (!fs.existsSync(path + "/servers")) {
     fs.mkdirSync(path + "/servers");
@@ -41,7 +47,9 @@ export async function init() {
   logger.info("Initialized all servers");
 
   setTimeout(() => saveServerData(), 6e5); //every ten minutes
-  logger.info("Initialized successfully");
+
+  const duration = Date.now() - timestamp;
+  logger.info(`Initialized successfully (${duration} ms)`);
 }
 
 function initServerData() {
