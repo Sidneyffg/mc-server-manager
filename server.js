@@ -1,3 +1,4 @@
+import fs from "fs";
 import Logger from "./handlers/consoleHandler.js";
 import express from "express";
 import { Server } from "socket.io";
@@ -14,6 +15,9 @@ process.on("exit", (code) => {
   if (code == -1) logger.error(text);
   else logger.info(text);
 });
+
+const DEV = fs.existsSync(`${process.cwd()}/dev`);
+if (DEV) logger.info("Starting in development mode...");
 
 // create webServer for website
 const app = express();
@@ -214,7 +218,7 @@ io.on("connection", (socket) => {
   });
 });
 
-const webServerPort = 3001;
+const webServerPort = DEV ? 3001 : 3000;
 server.listen(webServerPort, () => {
   logger.info(`Listening on port ${webServerPort}`);
 });
