@@ -5,7 +5,7 @@ import portHandler from "../portHandler.js";
 export default class SettingsHandler {
   constructor(server) {
     this.#server = server;
-    this.serverId = this.#server.data.id;
+    this.serverId = this.#server.id;
     this.fileHandler = server.fileHandler;
     this.#logger = new Logger([
       "serverHandler",

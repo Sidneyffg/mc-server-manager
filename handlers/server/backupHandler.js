@@ -60,7 +60,7 @@ export default class BackupHandler {
       timeBetweenAutomaticBackups: this.data.timeBetweenAutomaticBackups,
       deleteAutomaticBackupAfter: this.data.deleteAutomaticBackupAfter,
     });
-    listener.emit("saveServerData");
+    this.#server.saveData();
   }
 
   #backupTimeoutId = null;
@@ -121,7 +121,7 @@ export default class BackupHandler {
     const time = Date.now() - timestamp;
     this.#logger.info(`Finished backup (${time} ms)`);
     listener.emit("_backupUpdate" + this.#server.serverNum, this.data.backups);
-    listener.emit("saveServerData");
+    this.#server.saveData();
   }
 
   async deleteBackup(id) {
@@ -147,14 +147,14 @@ export default class BackupHandler {
     });
     this.data.backups.splice(backupIdx, 1);
     listener.emit("_backupUpdate" + this.#server.serverNum, this.data.backups);
-    listener.emit("saveServerData");
+    this.#server.saveData();
   }
 
   #copyBackupFolder(src, dest) {
     return new Promise((resolve, reject) => {
       fs.cp(src, dest, { recursive: true }, (err) => {
         if (err) {
-          console.log(err);
+          this.#logger.error(err);
           reject(err);
           return;
         }

@@ -70,7 +70,7 @@ app.get("/servers/*/*", (req, res) => {
   res.render(websitePath + `/${pageType}/${pageType}.ejs`, {
     serverData: server,
     serverIp: serverHandler.ip,
-    serverPort: portHandler.getPortData({ serverId: server.data.id }).port,
+    serverPort: portHandler.getPortData({ serverId: server.id }).port,
   });
 });
 
@@ -84,7 +84,7 @@ app.get("/servers/*", (req, res) => {
   res.render(websitePath + "/server/server.ejs", {
     server,
     serverIp: serverHandler.ip,
-    serverPort: portHandler.getPortData({ serverId: server.data.id }).port,
+    serverPort: portHandler.getPortData({ serverId: server.id }).port,
   });
 });
 
@@ -213,7 +213,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("deleteServer", (serverNum) => {
-    console.log("dete");
     serverHandler.deleteServer(serverNum);
   });
 });

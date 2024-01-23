@@ -5,12 +5,11 @@ import Server from "./server.js";
 import * as listener from "./listener.js";
 import javaHandler from "./javaHandler.js";
 import versionHandler from "./versionHandler.js";
-import { v4 as uuidV4 } from "uuid";
+import * as uuid from "uuid";
 import portHandler from "./portHandler.js";
 
 const logger = new Logger(["serverHandler"]);
 export const servers = [];
-let serverData;
 export let ip;
 export function totalServers() {
   return servers.length;
@@ -26,47 +25,27 @@ export async function init() {
     logger.info("Created data folder");
   }
 
-  initServerData();
-
   ip = await getIp();
   logger.info("Server ip: " + ip);
 
   await versionHandler.init();
   javaHandler.init();
 
-  if (!fs.existsSync(path + "/servers")) {
-    fs.mkdirSync(path + "/servers");
+  const serversPath = path + "/servers";
+  if (!fs.existsSync(serversPath)) {
+    fs.mkdirSync(serversPath);
     logger.info("Created server folder");
   }
-
-  for (let i = 0; i < serverData.length; i++) {
-    const server = new Server(serverData[i]);
+  const serverFolders = fs.readdirSync(serversPath);
+  serverFolders.forEach((folder) => {
+    if (!uuid.validate(folder)) return;
+    const server = new Server(folder);
     servers.push(server);
-    saveOnExit(server);
-  }
+  });
   logger.info("Initialized all servers");
-
-  setTimeout(() => saveServerData(), 6e5); //every ten minutes
 
   const duration = Date.now() - timestamp;
   logger.info(`Initialized successfully (${duration} ms)`);
-}
-
-function initServerData() {
-  if (fs.existsSync("./data/serverData.json")) {
-    try {
-      serverData = JSON.parse(fs.readFileSync("./data/serverData.json"));
-    } catch (err) {
-      logger.error("Failed to load serverData...");
-      logger.error(`-> ${err}`);
-      process.exit(1);
-    }
-    logger.info("Successfully loaded serverData");
-  } else {
-    fs.writeFileSync("./data/serverData.json", "[]");
-    serverData = [];
-    logger.info(`Created serverData.json and filled it with []`);
-  }
 }
 
 /**
@@ -88,7 +67,7 @@ function strictParseInt(num) {
 export function get(serverData) {
   if (strictParseInt(serverData) != NaN)
     return servers.find((e) => e.data.num == serverData);
-  return servers.find((e) => e.data.id == serverData);
+  return servers.find((e) => e.id == serverData);
 }
 
 /**
@@ -100,14 +79,14 @@ export function get(serverData) {
 
 export function newServer(data, port, callbackOnFirstStart = null) {
   return new Promise(async (resolve) => {
-    data.id = uuidV4();
-    let path = `${process.cwd()}/data/servers/${data.id}`;
+    const id = uuid.v4();
+    let path = `${process.cwd()}/data/servers/${id}`;
     fs.mkdirSync(path);
     path += "/server";
     fs.mkdirSync(path);
 
-    const currentServer = addServerObject(data);
-    portHandler.bind(port, currentServer.data.id);
+    const currentServer = addServerObject(id, data);
+    portHandler.bind(port, currentServer.id);
 
     if (callbackOnFirstStart) callbackOnFirstStart(currentServer);
 
@@ -127,8 +106,6 @@ export function newServer(data, port, callbackOnFirstStart = null) {
 
     await currentServer.shutdownHandler.stopServer();
     await currentServer.updateDirSize();
-    saveServerData();
-    saveOnExit(currentServer);
     resolve(currentServer);
   });
 }
@@ -138,7 +115,7 @@ export function newServer(data, port, callbackOnFirstStart = null) {
  * @param {serverHandler.data} data
  * @returns {Server}
  */
-function addServerObject(data) {
+function addServerObject(id, data) {
   const serverNum = getNewServerNum();
   const newData = {
     ...data,
@@ -146,16 +123,16 @@ function addServerObject(data) {
     creationDate: Date.now(),
     dirSize: 0,
   };
-  serverData.push(newData);
-  const server = new Server(newData, "downloading");
+  const server = new Server(id, true, newData);
   servers.push(server);
   return server;
 }
 
 function getNewServerNum() {
   let idx = 0;
+  const usedNums = servers.map((server) => server.data.num);
   while (true) {
-    if (!serverData.find((e) => e.num == idx)) return idx;
+    if (!usedNums.includes(idx)) return idx;
     idx++;
   }
 }
@@ -194,12 +171,6 @@ function writeServerProperties(data, port, serverPath) {
   fs.writeFileSync(serverPath + "/server.properties", propertiesData);
 }
 
-function saveOnExit(server) {
-  server.on("statusUpdate", (newStatus) => {
-    if (newStatus == "offline") saveServerData();
-  });
-}
-
 export function deleteServer(serverNum) {
   return new Promise(async (resolve) => {
     logger.info(`Deleting server ${serverNum}`);
@@ -212,25 +183,10 @@ export function deleteServer(serverNum) {
       logger.error("Aborting server deletion...");
       return;
     }
-    const data = serverData.find((e) => e.num == serverNum);
-    serverData.splice(serverData.indexOf(data), 1);
     servers.splice(servers.indexOf(server), 1);
-    saveServerData();
     logger.info(`Deleted server ${serverNum}`);
     resolve();
   });
-}
-
-listener.on("saveServerData", () => saveServerData());
-
-export async function saveServerData() {
-  fs.writeFileSync(
-    "./data/serverData.json",
-    JSON.stringify(serverData, null, 2),
-    (err) => {
-      if (err) throw err;
-    }
-  );
 }
 
 function getIp() {

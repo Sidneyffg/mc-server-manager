@@ -13,23 +13,46 @@ import javaHandler from "./javaHandler.js";
 import portHandler from "./portHandler.js";
 
 export default class Server {
-  constructor(data, status = "offline") {
-    this.data = data;
+  constructor(id, isDownloading = false, downloadingData = null) {
+    this.id = id;
+    this.dirPath = `${process.cwd()}/data/servers/${id}`;
+    this.path = `${this.dirPath}/server`;
+    this.dataPath = `${this.dirPath}/data.json`;
+    this.#checkServer();
+
+    if (isDownloading) {
+      this.status = "downloading";
+      const data = JSON.stringify(downloadingData);
+      fs.writeFileSync(this.dataPath, data);
+    } else this.status = "offline";
+
+    this.#initData();
+
     this.serverNum = this.data.num;
     this.#logger = new Logger(["serverHandler", `server ${this.serverNum}`]);
     this.#logger.info(`Initializing...`);
 
-    this.dirPath = `${process.cwd()}/data/servers/${this.data.id}`;
-    this.path = `${this.dirPath}/server`;
-    this.status = status;
-
-    this.#checkServer();
     this.#initHandlers();
   }
 
   #checkServer() {
     if (!fs.existsSync(this.dirPath))
       this.#logger.exitWithError("Failed to find server dir");
+  }
+
+  #initData() {
+    const path = this.dirPath + "/data.json";
+    if (!fs.existsSync(path))
+      this.#logger.exitWithError("Failed to find data...");
+    const data = fs.readFileSync(path);
+    this.data = JSON.parse(data);
+  }
+
+  async saveData() {
+    const data = JSON.stringify(this.data, null, 2);
+    fs.writeFileSync(this.dataPath, data, (err) => {
+      this.#logger.error("Failed to save data...");
+    });
   }
 
   #initHandlers() {
@@ -70,19 +93,19 @@ export default class Server {
 
       this.server = spawn(
         `"${process.cwd()}/startServer.bat"`,
-        [this.data.id, `"${javaPath}"`],
+        [this.id, `"${javaPath}"`],
         { shell: true }
       );
 
       this.setServerStatus("starting");
-      portHandler.activate(this.data.id);
+      portHandler.activate(this.id);
 
       this.server.stdout.on("data", (data) => this.#handleData(data));
       this.server.stderr.on("data", (data) => this.#handleData(data));
       this.server.on("close", () => {
         if (this.status == "downloading") resolve(false);
         this.setServerStatus("offline");
-        portHandler.deactivate(this.data.id);
+        portHandler.deactivate(this.id);
         this.server = null;
         clearInterval(this.dirSizeIntervalId);
       });
@@ -118,10 +141,11 @@ export default class Server {
   }
 
   async updateDirSize() {
-    const dirSize = await getServerDirSize(this.data.id);
+    const dirSize = await getServerDirSize(this.id);
     this.data.dirSize = dirSize;
     listener.emit("_serverDirSizeUpdate" + this.serverNum, dirSize);
     this.#logger.info("Updated server dir size");
+    this.saveData();
   }
 
   setServerStatus(newStatus) {
