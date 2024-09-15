@@ -56,8 +56,7 @@ export default class ShutdownHandler {
       timeLeft /= 60;
     }
     this.#server.write(
-      `title @a subtitle {"text":"In ${timeLeft} ${quantity}"}\n` +
-        `title @a title {"text":"Server shutting down","color":"green"}`
+      `title @a actionbar {"text":"Server shutting down in ${timeLeft} ${quantity}...", "color":"green"}`
     );
   }
 
@@ -112,7 +111,10 @@ export default class ShutdownHandler {
   serverShuttingDownAt;
   #stopTimeoutIds = [];
   #callbacks = [];
-  #stopTimestamps = [10e3, 30e3, 60e3, 120e3, 300e3, 600e3, 1200e3, 1800e3]; //seconds
+  #stopTimestamps = [
+    1e3, 2e3, 3e3, 4e3, 5e3, 10e3, 30e3, 60e3, 120e3, 300e3, 600e3, 1800e3,
+    3600e3,
+  ]; //seconds
 
   #logger;
   #server;
