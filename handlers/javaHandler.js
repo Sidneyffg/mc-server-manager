@@ -137,7 +137,7 @@ const javaHandler = {
     downloadLinks: [
       {
         version: 11,
-        url: "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.21%2B9/OpenJDK11U-jre_x64_windows_hotspot_11.0.21_9.zip",
+        url: "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.24%2B8/OpenJDK11U-jre_x64_windows_hotspot_11.0.24_8.zip",
       },
       {
         version: 16,
@@ -145,7 +145,11 @@ const javaHandler = {
       },
       {
         version: 17,
-        url: "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.9%2B9.1/OpenJDK17U-jre_x64_windows_hotspot_17.0.9_9.zip",
+        url: "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.12%2B7/OpenJDK17U-jre_x64_windows_hotspot_17.0.12_7.zip",
+      },
+      {
+        version: 21,
+        url: "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.4%2B7/OpenJDK21U-jre_x64_windows_hotspot_21.0.4_7.zip",
       },
     ],
     path: `${process.cwd()}/data/javaHandler/versions`,
@@ -172,7 +176,8 @@ const javaHandler = {
       version = this.getBigVersion(version);
       if (version <= 16) return 11;
       else if (version == 17) return 16;
-      else return 17;
+      else if (version <= 19) return 17;
+      else return 21;
     },
     /**
      * @param {string} version - Server version

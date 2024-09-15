@@ -13,24 +13,6 @@ export default class PlayerHandler {
 
     this.#updateAllPlayergroups();
 
-    server.on("playerConnected", (playerName) => {
-      this.onlinePlayers.push(playerName);
-      listener.emit(
-        "_onlinePlayersUpdate" + server.serverNum,
-        this.onlinePlayers
-      );
-      this.#logger.info(`${playerName} connected to server`);
-    });
-
-    server.on("playerDisconnected", (playerName) => {
-      this.onlinePlayers.splice(this.onlinePlayers.indexOf(playerName), 1);
-      listener.emit(
-        "_onlinePlayersUpdate" + server.serverNum,
-        this.onlinePlayers
-      );
-      this.#logger.info(`${playerName} disconnected from server`);
-    });
-
     server.on("statusUpdate", (status) => {
       switch (status) {
         case "online":
@@ -47,6 +29,26 @@ export default class PlayerHandler {
   allPlayers = [];
   whitelistedPlayers = [];
   oppedPlayers = [];
+
+  handlePlayerConnected(name) {
+    this.onlinePlayers.push(name);
+    listener.emit(
+      "_onlinePlayersUpdate" + this.#server.serverNum,
+      this.onlinePlayers
+    );
+    this.#logger.info(`${name} connected to server`);
+    this.#emit("playerConnected", name);
+  }
+
+  handlePlayerDisconnected(name) {
+    this.onlinePlayers.splice(this.onlinePlayers.indexOf(name), 1);
+    listener.emit(
+      "_onlinePlayersUpdate" + this.#server.serverNum,
+      this.onlinePlayers
+    );
+    this.#logger.info(`${name} disconnected from server`);
+    this.#emit("playerDisconnected", name);
+  }
 
   #wachPlayers() {
     this.fileHandler.watchFile("usercache", this.#updateAllPlayers.bind(this));
@@ -107,6 +109,19 @@ export default class PlayerHandler {
     if (this.oppedPlayers.includes(name)) return false;
     this.#server.write(`op ${name}`);
     return true;
+  }
+
+  #listeners = [];
+  on(event, callback) {
+    this.#listeners.push({ event, callback });
+  }
+
+  #emit(event, data, serverNum) {
+    this.#listeners.forEach((e) => {
+      if (e.event == event.replace()) {
+        e.callback(data, serverNum);
+      }
+    });
   }
 
   #logger;

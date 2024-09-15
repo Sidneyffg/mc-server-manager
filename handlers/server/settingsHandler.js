@@ -12,24 +12,26 @@ export default class SettingsHandler {
       `server ${server.serverNum}`,
       "settingsHandler",
     ]);
-
-    server.on("updateSettings", (data) => {
-      for (const property in data) {
-        this.clientSettings[property] = data[property];
-        const setting = allClientSettings[property];
-        setting.handlers.handleClientSettingUpdate.call(this, {
-          defaultServerProperty: setting.defaultServerProperty,
-          value: data[property],
-        });
-      }
-      this.saveSettings();
-    });
   }
 
   init() {
     this.getSettings();
     this.getEditableSettings();
     this.getClientSettings();
+    // client settings differ from server settings
+    // for example extra settings or simplified settings
+  }
+
+  updateSettings(data) {
+    for (const property in data) {
+      this.clientSettings[property] = data[property];
+      const setting = allClientSettings[property];
+      setting.handlers.handleClientSettingUpdate.call(this, {
+        defaultServerProperty: setting.defaultServerProperty,
+        value: data[property],
+      });
+    }
+    this.saveSettings();
   }
 
   getSettings() {

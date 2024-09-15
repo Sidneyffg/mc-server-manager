@@ -68,11 +68,8 @@ const versionHandler = {
         versions.forEach(async (e) => {
           if (!this.allVersions.find((a) => a.version == e.id)) {
             const jsonData = await versionHandler.getJsonFromLink(e.url);
-            let url = null;
+            let url = jsonData.downloads.server?.url ?? null;
             let timestamp = new Date(jsonData.releaseTime).getTime();
-            if (jsonData.downloads.server) {
-              url = jsonData.downloads.server.url;
-            }
             this.allVersions.push({
               version: e.id,
               url,

@@ -169,11 +169,10 @@ io.on("connection", (socket) => {
 
   socket.on("updateSettings", async (serverNum, newSettings, force) => {
     const server = serverHandler.get(serverNum);
-    server.emit("updateSettings", newSettings);
+    server.settingsHandler.updateSettings(newSettings);
     if (force) {
       if (server.status != "online") return;
-      await server.shutdownHandler.stopServer();
-      server.start();
+      server.shutdownHandler.restart()
     }
   });
 

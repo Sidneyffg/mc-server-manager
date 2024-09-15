@@ -70,10 +70,10 @@ export default class EventHandler {
         this.#server.setServerStatus("online");
         break;
       case "joined":
-        this.#server.emit("playerConnected", res.data.username);
+        this.#server.playerHandler.handlePlayerConnected(res.data.username);
         break;
       case "left":
-        this.#server.emit("playerDisconnected", res.data.username);
+        this.#server.playerHandler.handlePlayerDisconnected(res.data.username);
         break;
     }
   }
@@ -107,6 +107,7 @@ export default class EventHandler {
   }
 
   addOfflineTodoItem(data) {
+    console.trace();
     this.data.todo.offline.push(new TodoItem(data));
     this.#logger.info(`Added offline todo item: ${data.action}`);
   }
