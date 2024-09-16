@@ -105,18 +105,7 @@ export default class BackupHandler {
     const backupPath = `${this.path}/${id}`;
     fs.mkdirSync(backupPath);
 
-    await this.#copyBackupFolder(
-      `${this.#server.path}/world`,
-      `${backupPath}/world`
-    );
-    await this.#copyBackupFolder(
-      `${this.#server.path}/world_nether`,
-      `${backupPath}/world_nether`
-    );
-    await this.#copyBackupFolder(
-      `${this.#server.path}/world_the_end`,
-      `${backupPath}/world_the_end`
-    );
+    await this.#copyBackupFolder(`${this.#server.path}`, `${backupPath}`);
 
     const time = Date.now() - timestamp;
     this.#logger.info(`Finished backup (${time} ms)`);
