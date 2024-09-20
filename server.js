@@ -172,7 +172,7 @@ io.on("connection", (socket) => {
     server.settingsHandler.updateSettings(newSettings);
     if (force) {
       if (server.status != "online") return;
-      server.shutdownHandler.restart()
+      server.shutdownHandler.restart();
     }
   });
 
@@ -209,6 +209,22 @@ io.on("connection", (socket) => {
   socket.on("deleteBackup", (serverNum, backupId) => {
     const server = serverHandler.get(serverNum);
     server.backupHandler.deleteBackup(backupId);
+  });
+
+  socket.on("restoreBackup", (serverNum, backupId, restoreIn) => {
+    const server = serverHandler.get(serverNum);
+    if (!server) return;
+
+    if (server.status == "offline")
+      return server.backupHandler.restoreBackup(backupId);
+
+    server.shutdownHandler.stopServerIn(
+      async () => {
+        await server.backupHandler.restoreBackup(backupId);
+      },
+      restoreIn,
+      true
+    );
   });
 
   socket.on("deleteServer", (serverNum) => {

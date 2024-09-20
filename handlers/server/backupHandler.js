@@ -54,7 +54,7 @@ export default class BackupHandler {
       } else {
         this.data.deleteAutomaticBackupAfter = data.deleteBackupTime * 36e5;
       }
-      if (this.#server.statu == "online") this.#startTimeout();
+      if (this.#server.status == "online") this.#startTimeout();
     }
     listener.emit("_automaticBackupSettingsUpdate" + this.#server.serverNum, {
       timeBetweenAutomaticBackups: this.data.timeBetweenAutomaticBackups,
@@ -139,6 +139,29 @@ export default class BackupHandler {
     this.#server.saveData();
   }
 
+  async restoreBackup(id) {
+    if (this.#server.status !== "offline")
+      return this.#logger.error(
+        "Tried to restore backup while server isn't offline..."
+      );
+    this.#server.setServerStatus("updating");
+
+    this.emptyServerFolder();
+
+    const backupPath = `${this.path}/${id}`;
+    this.#copyBackupFolder(backupPath, this.#server.path);
+
+    this.#server.setServerStatus("offline");
+  }
+
+  emptyServerFolder() {
+    const filenames = fs.readdirSync(this.#server.path);
+    filenames.forEach((filename) => {
+      const path = `${this.#server.path}/${filename}`;
+      fs.rmSync(path, { force: true, recursive: true });
+    });
+  }
+
   #copyBackupFolder(src, dest) {
     return new Promise((resolve, reject) => {
       fs.cp(src, dest, { recursive: true }, (err) => {
@@ -160,5 +183,8 @@ export default class BackupHandler {
 
   #serverOnlineTimestamp;
   #logger;
+  /**
+   * @type {import("../server.js").default}
+   */
   #server;
 }

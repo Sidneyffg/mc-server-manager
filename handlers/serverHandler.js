@@ -54,7 +54,11 @@ export async function init() {
  * @returns
  */
 function strictParseInt(num) {
-  if (typeof num != "string") num = num.toString();
+  try {
+    if (typeof num != "string") num = num.toString();
+  } catch {
+    return NaN;
+  }
   if (num !== parseInt(num).toString()) return NaN;
   return parseInt(num);
 }

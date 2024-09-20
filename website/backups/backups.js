@@ -168,18 +168,26 @@ const months = [
 ];
 
 function createBackup() {
-  if (utils.server.status == "offline") {
-    socket.emit("createBackup", utils.server.num);
-    return;
-  }
+  if (utils.server.status == "offline")
+    return socket.emit("createBackup", utils.server.num);
+
   utils.stopMenu.open(
     "backup",
     (data) => {
       if (!data.shouldStop) return;
-      socket.emit("createBackup", utils.server.num, data.time);
+      utils.server.emit("createBackup", data.time);
     },
     true
   );
 }
 
 const deleteBackup = (id) => socket.emit("deleteBackup", utils.server.num, id);
+const restoreBackup = (id) => {
+  if (utils.server.status == "offline")
+    return socket.emit("restoreBackup", utils.server.num, id);
+
+  utils.stopMenu.open("restore backup", (data) => {
+    if (!data.shouldStop) return;
+    utils.server.emit("restoreBackup", data.time);
+  });
+};
