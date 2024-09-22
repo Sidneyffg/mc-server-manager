@@ -30,7 +30,7 @@ export default class Logger {
         logPrefix += `[${prefix}] `;
       }
     });
-    process.stdout.write(color + logPrefix + text + "\n");
+    process.stdout.write(color + logPrefix + text + "\n" + this.#Reset);
   }
 
   #typesToSkip = ["spawnLog"];

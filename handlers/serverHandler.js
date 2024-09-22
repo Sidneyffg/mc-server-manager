@@ -2,7 +2,6 @@ import fs from "fs";
 import https from "https";
 import Logger from "./consoleHandler.js";
 import Server from "./server.js";
-import * as listener from "./listener.js";
 import javaHandler from "./javaHandler.js";
 import versionHandler from "./versionHandler.js";
 import * as uuid from "uuid";
@@ -25,8 +24,8 @@ export async function init() {
     logger.info("Created data folder");
   }
 
-  ip = await getIp();
-  logger.info("Server ip: " + ip);
+  checkPlatform();
+  checkIp();
 
   await versionHandler.init();
   javaHandler.init();
@@ -48,8 +47,21 @@ export async function init() {
   logger.info(`Initialized successfully (${duration} ms)`);
 }
 
+function checkPlatform() {
+  const platform = process.platform;
+  logger.info("Platform: " + process.platform);
+
+  if (platform != "win32") logger.exitWithError("Unsupported platform...");
+}
+
+async function checkIp() {
+  ip = await getIp().catch(() => {
+    logger.exitWithError("Failed to get ip...");
+  });
+  logger.info("Server ip: " + ip);
+}
+
 /**
- *
  * @param {string|number} num
  * @returns
  */
@@ -194,17 +206,21 @@ export function deleteServer(serverNum) {
 }
 
 function getIp() {
-  return new Promise((resolve) => {
-    https.get("https://ipv4.icanhazip.com/", (res) => {
-      let body = "";
+  return new Promise((resolve, reject) => {
+    https
+      .get("https://ipv4.icanhazip.com/", (res) => {
+        let body = "";
 
-      res.on("data", (chunk) => {
-        body += chunk;
-      });
+        res.on("data", (chunk) => {
+          body += chunk;
+        });
 
-      res.on("end", () => {
-        resolve(body.trim());
+        res.on("end", () => {
+          resolve(body.trim());
+        });
+      })
+      .on("error", (err) => {
+        reject(err);
       });
-    });
   });
 }

@@ -6,7 +6,6 @@ import http from "http";
 import * as serverHandler from "./handlers/serverHandler.js";
 import versionHandler from "./handlers/versionHandler.js";
 import * as listener from "./handlers/listener.js";
-import javaHandler from "./handlers/javaHandler.js";
 import portHandler from "./handlers/portHandler.js";
 
 const logger = new Logger(["webserver"]);
